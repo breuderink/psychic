@@ -1,3 +1,3 @@
 import bdfreader
 import preprocessing
-import bcihelpers
+import plots
