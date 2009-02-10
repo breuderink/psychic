@@ -11,3 +11,8 @@ def status_to_events(status_array):
   events = status[change_ids]
   return (events[np.nonzero(events)], change_ids[np.nonzero(events)])
 
+def car(frames):
+  '''
+  Calculate Comman Average Reference. Used to remove far away sources from EEG.
+  '''
+  return frames - np.mean(frames, axis=1).reshape(frames.shape[0], 1)
