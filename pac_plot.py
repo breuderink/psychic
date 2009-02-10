@@ -1,5 +1,6 @@
 import os, unittest
 import numpy as np
+import golem
 import psychic
 
 if __name__ == '__main__':

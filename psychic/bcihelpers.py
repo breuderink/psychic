@@ -12,15 +12,28 @@ def sliding_window(signal, window_size, window_step):
   indices = starts + np.arange(window_size)
   return signal.take(indices=indices)
 
-def specgram(signal, NFFT, stepsize):
+def stft(signal, nfft, stepsize):
   '''
-  Calculate the FFT of a signal using a sliding Hanning Window.
+  Calculate the short-time Fourier transform (STFT)
   '''
   assert(signal.ndim == 1)
-  wins = sliding_window(signal, NFFT, stepsize) * np.hanning(NFFT)
-  return np.abs(np.fft.rfft(wins, axis=1)).T ** 2
-  #@@ np.abs(s.T) ** 2 -> looks like specgram, np.log10 for smooth plot
-    
+  wins = sliding_window(signal, nfft, stepsize) * np.hanning(nfft)
+  return np.fft.rfft(wins, axis=1)
+
+def spectrogram(signal, nfft, stepsize):
+  '''
+  Calculate a spectrogram using the STFT. Returns (frames x frequencies)
+  '''
+  return np.abs(stft(signal, nfft, stepsize))
+
+def slice(frames, event_indices, post_frames, pre_frames=0):
+  '''
+  Slice function, used to extract snippets of EEG from a recording.
+  '''
+  slices =[]
+  for ei in event_indices:
+    slices.append(frames[ei-pre_frames:ei+post_frames, :])
+  return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])
 
 def trialize(time_channels, trial_starts, length):
   trials = []
