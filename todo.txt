@@ -1,0 +1,5 @@
+1 slicing
+1 spectogram
+1 AUC-o-gram
+2 BDF-content unittest
+2 santity check in preprocessing (bad channels, NaNs, incontinuities?)

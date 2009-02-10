@@ -1,6 +1,10 @@
 import numpy as np
 
 def windowize(signal, window_size, window_step):
+  '''
+  Take a single signal, and move a sliding window over this signal.
+  returns a 2D array (windows x signal)
+  '''
   assert(signal.ndim == 1)
   nwindows = int(np.floor((len(signal) - window_size + window_step) / \
     float(window_step)))
@@ -9,6 +13,9 @@ def windowize(signal, window_size, window_step):
   return signal.take(indices=indices)
 
 def specgram(signal, NFFT, stepsize):
+  '''
+  Calculate the FFT of a signal using a sliding Hanning Window.
+  '''
   assert(signal.ndim == 1)
   wins = windowize(signal, NFFT, stepsize) * np.hanning(NFFT)
   return np.abs(np.fft.rfft(wins, axis=1)).T ** 2
