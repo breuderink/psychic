@@ -13,17 +13,13 @@ def sliding_window(signal, window_size, window_step):
   return signal.take(indices=indices)
 
 def stft(signal, nfft, stepsize):
-  '''
-  Calculate the short-time Fourier transform (STFT)
-  '''
+  ''' Calculate the short-time Fourier transform (STFT) '''
   assert(signal.ndim == 1)
   wins = sliding_window(signal, nfft, stepsize) * np.hanning(nfft)
   return np.fft.rfft(wins, axis=1)
 
 def spectrogram(signal, nfft, stepsize):
-  '''
-  Calculate a spectrogram using the STFT. Returns (frames x frequencies)
-  '''
+  ''' Calculate a spectrogram using the STFT. Returns (frames x frequencies) '''
   return np.abs(stft(signal, nfft, stepsize))
 
 def slice(frames, event_indices, post_frames, pre_frames=0):
@@ -32,22 +28,9 @@ def slice(frames, event_indices, post_frames, pre_frames=0):
   '''
   slices =[]
   for ei in event_indices:
-    slices.append(frames[ei-pre_frames:ei+post_frames, :])
+    start, end = ei-pre_frames, ei+post_frames
+    if start < 0 or end > frames.shape[0]:
+      raise Exception('Cannot extract slice [%d, %d]' % (start, end))
+    else:
+      slices.append(frames[start:end, :])
   return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])
-
-def trialize(time_channels, trial_starts, length):
-  trials = []
-  for s in trial_starts:
-    trial = time_channels[s:s+length, :]
-    trials.append(trial)
-  return trials
-
-def dwt_features(trial):
-  features = []
-  for chann_i in range(trial.shape[1]):
-    signal = trial[:, chann_i]
-    wd = pywt.wavedec(signal, 'db3', level= 7)
-    wf = np.vstack([l[0] for l in wd])
-    features.append(wf)
-  chann_wd = np.vstack(features)
-  return chann_wd
