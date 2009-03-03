@@ -1,4 +1,4 @@
-import os, unittest, logging
+import os, unittest, logging, glob
 import numpy as np
 import pylab
 import golem
@@ -7,10 +7,9 @@ from psychic.preprocessing import *
 
 if __name__ == '__main__':
   logging.basicConfig()
-  b = psychic.bdfreader.BDFReader(open(os.path.join('data', '20090204T1512_kardelen.bdf'), 'rb'))
+  b = psychic.bdfreader.BDFReader(open(glob.glob('data/*reud*', 'rb'))
   channels = b.read_all()
-  eeg = channels[:, :-1]
-  #eeg = channels[:256 * 60,:]
+  streams = channels[:, :-1]
   status = channels[:, -1]
   events, eindices = psychic.preprocessing.status_to_events(channels[:, -1])
   #pylab.plot(eeg - np.mean(eeg, axis=0) + np.arange(eeg.shape[1]) * 100)
