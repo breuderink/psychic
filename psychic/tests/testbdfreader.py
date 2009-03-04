@@ -23,11 +23,10 @@ class TestConversion(unittest.TestCase):
 class TestBDFReader(unittest.TestCase):
   def setUp(self):
     self.bdf = BDFReader(open(
-      os.path.join('tests', 'data', 'sine-256Hz.bdf'), 'rb'))
+      os.path.join('psychic', 'tests', 'data', 'sine-256Hz.bdf'), 'rb'))
 
   def test_read_all(self):
     b = self.bdf
     eeg = b.read_all()
     self.assertEqual(eeg.shape[0], 
       b.bdf.header['n_records'] * max(b.bdf.header['n_samples_per_record']))
-

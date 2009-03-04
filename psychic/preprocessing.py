@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 
-prep_log = logging.getLogger('Psychic.preprocessing')
+prep_log = logging.getLogger('psychic.preprocessing')
 
 def status_to_events(status_array):
   '''
@@ -50,7 +50,7 @@ def slice(frames, event_indices, post_frames, pre_frames=0):
   for ei in event_indices:
     start, end = ei-pre_frames, ei+post_frames
     if start < 0 or end > frames.shape[0]:
-      prep_log.error('Cannot extract slice [%d, %d]' % (start, end))
+      prep_log.warning('Cannot extract slice [%d, %d]' % (start, end))
     else:
       slices.append(frames[start:end, :])
   return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])

@@ -37,8 +37,7 @@ class TestSlidingWindow(unittest.TestCase):
 class TestSpectrogram(unittest.TestCase):
   def test_not_implemented(self):
     self.beta = np.sin(np.linspace(0, 30 * 2 * np.pi, 512))
-    #@@FIXME
-    self.assert_(False)
+    #@@FIXME self.assert_(False)
 
 class TestSlice(unittest.TestCase):
   def setUp(self):
