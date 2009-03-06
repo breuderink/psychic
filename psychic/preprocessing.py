@@ -25,7 +25,7 @@ def sliding_window(signal, window_size, window_step):
   Take a single signal, and move a sliding window over this signal.
   returns a 2D array (windows x signal)
   '''
-  assert(signal.ndim == 1)
+  assert signal.ndim == 1, '1D signal required for sliding window.'
   nwindows = int(np.floor((len(signal) - window_size + window_step) / \
     float(window_step)))
   starts = np.arange(nwindows).reshape(nwindows, 1) * window_step
@@ -34,7 +34,7 @@ def sliding_window(signal, window_size, window_step):
 
 def stft(signal, nfft, stepsize):
   ''' Calculate the short-time Fourier transform (STFT) '''
-  assert(signal.ndim == 1)
+  assert signal.ndim == 1, '1D signal required for STFT'
   wins = sliding_window(signal, nfft, stepsize) * np.hanning(nfft)
   return np.fft.rfft(wins, axis=1)
 
@@ -42,13 +42,14 @@ def spectrogram(signal, nfft, stepsize):
   ''' Calculate a spectrogram using the STFT. Returns (frames x frequencies) '''
   return np.abs(stft(signal, nfft, stepsize))
 
-def slice(frames, event_indices, post_frames, pre_frames=0):
+def slice(frames, event_indices, offsets=None):
   '''
   Slice function, used to extract snippets of EEG from a recording.
   '''
-  slices =[]
+  slices = []
+  off_start, off_end = offsets
   for ei in event_indices:
-    start, end = ei-pre_frames, ei+post_frames
+    start, end = ei + off_start, ei + off_end
     if start < 0 or end > frames.shape[0]:
       prep_log.warning('Cannot extract slice [%d, %d]' % (start, end))
     else:
