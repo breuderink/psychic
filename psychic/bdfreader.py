@@ -31,7 +31,6 @@ class BDFReader:
     #records = [record for record in self.bdf.records()]
     records = [self.buff] + list(self.bdf.records())
     rframes = np.vstack(records)
-    print  rframes.dtype
     return rframes * self.bdf.gain
 
 class BaseBDFReader:
