@@ -27,6 +27,12 @@ class TestCAR(unittest.TestCase):
     np.testing.assert_almost_equal(d2.mean(axis=1), np.zeros(d.shape[0]))
 
 class TestSlidingWindow(unittest.TestCase):
+  def test_indices(self):
+    windows = sliding_window_indices(5, 2, 10)
+    self.assertEqual(windows.shape, (3, 5))
+    np.testing.assert_equal(windows[:, 0], [0, 2, 4])
+    np.testing.assert_equal(windows[0, :], range(5))
+
   def test_functionality_1D(self):
     signal = np.arange(10)
     windows = sliding_window(signal, 5, 2)
