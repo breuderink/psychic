@@ -17,21 +17,26 @@ def status_to_events(status_array):
 
 def car(frames):
   '''
-  Calculate Comman Average Reference. Used to remove far away sources from EEG.
+  Calculate Comman Average Reference. Used to remove distant sources from EEG.
   '''
   return frames - np.mean(frames, axis=1).reshape(frames.shape[0], 1)
 
-def sliding_window(signal, window_size, window_step, axis=0):
-  '''
-  Take a single signal, and move a sliding window over this signal.
-  returns a 2D array (windows x signal)
-  '''
-  assert signal.ndim == 1, '1D signal required for sliding window.'
-  nwindows = int(np.floor((len(signal) - window_size + window_step) /
+def sliding_window_indices(window_size, window_step, sig_len):
+  '''Returns indices for a sliding window with shape [nwindows x window_size]'''
+  nwindows = int(np.floor((sig_len - window_size + window_step) / 
     float(window_step)))
   starts = np.arange(nwindows).reshape(nwindows, 1) * window_step
-  indices = starts + np.arange(window_size)
-  return signal.take(indices=indices)
+  return starts + np.arange(window_size)
+
+def sliding_window(signals, window_size, window_step):
+  '''Replaces the last axis with a window axis and a signal axis'''
+  signals = np.atleast_2d(signals)
+  indices = sliding_window_indices(window_size, window_step, signals.shape[-1])
+  result = []
+  for s in signals: 
+    curr_wins = s.take(indices=indices)
+    result.append(curr_wins)
+  return np.asarray(result).squeeze()
 
 def stft(signal, nfft, stepsize):
   ''' Calculate the short-time Fourier transform (STFT) '''
@@ -41,7 +46,7 @@ def stft(signal, nfft, stepsize):
 
 
 def spectrogram(signal, nfft, stepsize):
-  ''' Calculate a spectrogram using the STFT. Returns (frames x frequencies) '''
+  '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
   return np.abs(stft(signal, nfft, stepsize))
 
 def slice(frames, event_indices, offsets):

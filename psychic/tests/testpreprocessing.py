@@ -34,13 +34,14 @@ class TestSlidingWindow(unittest.TestCase):
     np.testing.assert_equal(windows[:, 0], [0, 2, 4])
     np.testing.assert_equal(windows[0, :], range(5))
 
-  def test_functionality_axis(self):
-    signal = np.arange(10 * 4).reshape(4, 10).T
-    windows = sliding_window(signal, 5, 2, axis=0)
-    self.assertEqual(windows.shape, (3, 5, 4))
+  def test_functionality_2D(self):
+    signal = np.arange(10 * 4).reshape(4, 10)
+    windows = sliding_window(signal, 5, 2)
+    self.assertEqual(windows.shape, (4, 3, 5))
     # test equality with individually windowed signals
     for i in range(4):
-      self.assertEqual(sliding_window(signal[i,:], 5, 2), window[:, :, i])
+      np.testing.assert_equal(
+        sliding_window(signal[i,:], 5, 2), windows[i, :, :])
       
 class TestSpectrogram(unittest.TestCase):
   def test_not_implemented(self):
