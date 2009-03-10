@@ -31,6 +31,7 @@ class BDFReader:
     #records = [record for record in self.bdf.records()]
     records = [self.buff] + list(self.bdf.records())
     rframes = np.vstack(records)
+    print  rframes.dtype
     return rframes * self.bdf.gain
 
 class BaseBDFReader:
@@ -77,8 +78,9 @@ class BaseBDFReader:
     
     assert(f.tell() == self.header_nbytes)
 
-    self.gain = [(h['physical_max'][n] - h['physical_min'][n]) / 
-      float(h['digital_max'][n] - h['digital_min'][n]) for n in channels]
+    self.gain = np.array([(h['physical_max'][n] - h['physical_min'][n]) / 
+      float(h['digital_max'][n] - h['digital_min'][n]) for n in channels], 
+      np.float32)
     return self.header
   
   def read_record(self):
@@ -91,7 +93,7 @@ class BaseBDFReader:
     n_samp = h['n_samples_per_record']
     assert(np.min(n_samp) == np.max(n_samp))
     n_samp = np.min(n_samp)
-    result = np.zeros((n_samp, n_channels))
+    result = np.zeros((n_samp, n_channels), np.float32)
 
     for i in range(n_channels):
       bytes = self.file.read(n_samp * 3)

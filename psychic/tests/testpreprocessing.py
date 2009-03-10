@@ -27,13 +27,21 @@ class TestCAR(unittest.TestCase):
     np.testing.assert_almost_equal(d2.mean(axis=1), np.zeros(d.shape[0]))
 
 class TestSlidingWindow(unittest.TestCase):
-  def test_functionality(self):
+  def test_functionality_1D(self):
     signal = np.arange(10)
     windows = sliding_window(signal, 5, 2)
     self.assertEqual(windows.shape, (3, 5))
     np.testing.assert_equal(windows[:, 0], [0, 2, 4])
     np.testing.assert_equal(windows[0, :], range(5))
 
+  def test_functionality_axis(self):
+    signal = np.arange(10 * 4).reshape(4, 10).T
+    windows = sliding_window(signal, 5, 2, axis=0)
+    self.assertEqual(windows.shape, (3, 5, 4))
+    # test equality with individually windowed signals
+    for i in range(4):
+      self.assertEqual(sliding_window(signal[i,:], 5, 2), window[:, :, i])
+      
 class TestSpectrogram(unittest.TestCase):
   def test_not_implemented(self):
     self.beta = np.sin(np.linspace(0, 30 * 2 * np.pi, 512))
