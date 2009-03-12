@@ -30,20 +30,24 @@ def sliding_window_indices(window_size, window_step, sig_len):
 
 def sliding_window(signals, window_size, window_step):
   '''Replaces the last axis with a window axis and a signal axis'''
-  signals = np.atleast_2d(signals)
+  # TODO: use broadcasting magic:
+  # np.array([0, 100]).reshape(2, 1, 1) + wi.reshape(1, 3, 5)
+  # where wi is created using sliding_window_indices()
+  old_shape = signals.shape
+  signals = signals.reshape(-1, old_shape[-1]) # to 2D
+
   indices = sliding_window_indices(window_size, window_step, signals.shape[-1])
   result = []
   for s in signals: 
     curr_wins = s.take(indices=indices)
     result.append(curr_wins)
-  return np.asarray(result).squeeze()
+  result = np.asarray(result)
+  return result.reshape(list(old_shape[:-1]) + list(result.shape[-2:]))
 
-def stft(signal, nfft, stepsize):
-  ''' Calculate the short-time Fourier transform (STFT) '''
-  assert signal.ndim == 1, '1D signal required for STFT'
-  wins = sliding_window(signal, nfft, stepsize) * np.hanning(nfft)
-  return np.fft.rfft(wins, axis=1)
-
+def stft(signals, nfft, stepsize):
+  '''Calculate the short-time Fourier transform (STFT)'''
+  wins = sliding_window(signals, nfft, stepsize) * np.hanning(nfft)
+  return np.fft.rfft(wins, axis=signals.ndim-1)
 
 def spectrogram(signal, nfft, stepsize):
   '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
@@ -62,37 +66,3 @@ def slice(frames, event_indices, offsets):
     else:
       slices.append(frames[start:end, :])
   return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])
-
-
-def decimate(x, q, n=None, ftype='iir', axis=-1):
-  """downsample the signal x by an integer factor q, using an order n filter
-  
-  By default, an order 8 Chebyshev type I filter is used or a 30 point FIR 
-  filter with hamming window if ftype is 'fir'.
-
-  (port to python of the GNU Octave function decimate.)
-
-  Inputs:
-      x -- the signal to be downsampled (N-dimensional array)
-      q -- the downsampling factor
-      n -- order of the filter (1 less than the length of the filter for a
-           'fir' filter)
-      ftype -- type of the filter; can be 'iir' or 'fir'
-      axis -- the axis along which the filter should be applied
-  
-  Outputs:
-      y -- the downsampled signal
-  """
-  if type(q) != type(1):
-    raise Error, "q should be an integer"
-
-  if n is None:
-    n = 30 if ftype == 'fir' else 8
-  if ftype == 'fir':
-    b = firwin(n+1, 1./q, window='hamming')
-    y = lfilter(b, 1., x, axis=axis)
-  else:
-    (b, a) = cheby1(n, 0.05, 0.8/q)
-    y = lfilter(b, a, x, axis=axis)
-
-  return y.swapaxes(0,axis)[::q].swapaxes(0,axis)
