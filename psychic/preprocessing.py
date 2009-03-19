@@ -15,11 +15,13 @@ def status_to_events(status_array):
   events = status[change_ids]
   return (events[np.nonzero(events)], change_ids[np.nonzero(events)])
 
-def car(frames):
+def car(frames, selector=None):
   '''
   Calculate Comman Average Reference. Used to remove distant sources from EEG.
   '''
-  return frames - np.mean(frames, axis=1).reshape(frames.shape[0], 1)
+  if selector==None:
+    selector = np.arange(frames.shape[1])
+  return frames - np.mean(frames[:, selector], axis=1).reshape(frames.shape[0], 1)
 
 def sliding_window_indices(window_size, window_step, sig_len):
   '''Returns indices for a sliding window with shape [nwindows x window_size]'''
@@ -47,10 +49,11 @@ def sliding_window(signals, window_size, window_step):
 def stft(signals, nfft, stepsize):
   '''Calculate the short-time Fourier transform (STFT)'''
   wins = sliding_window(signals, nfft, stepsize) * np.hanning(nfft)
-  return np.fft.rfft(wins, axis=signals.ndim-1)
+  return np.fft.rfft(wins, axis=signals.ndim)
 
 def spectrogram(signal, nfft, stepsize):
   '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
+  # abs is the *magnitude* of a complex number
   return np.abs(stft(signal, nfft, stepsize))
 
 def slice(frames, event_indices, offsets):
