@@ -40,26 +40,67 @@ class TestSlidingWindow(unittest.TestCase):
     np.testing.assert_equal(windows[:, 0], [0, 2, 4])
     np.testing.assert_equal(windows[0, :], range(5))
 
-  def test_functionality_2D(self):
-    signal = np.arange(10 * 4).reshape(4, 10)
-    windows = sliding_window(signal, 5, 2)
-    self.assertEqual(windows.shape, (4, 3, 5))
+  def test_winf(self):
+    signal = np.arange(10)
+    winf = np.arange(5)
+    windows = sliding_window(signal, 5, 2, winf)
+    self.assertEqual(windows.shape, (3, 5))
+    np.testing.assert_equal(windows[:, 0], [0, 0, 0])
+    np.testing.assert_equal(windows[0, :], np.arange(5) ** 2)
 
-    # test equality with individually windowed signals
-    for i in range(4):
-      np.testing.assert_equal(
-        sliding_window(signal[i,:], 5, 2), windows[i, :, :])
+    self.assertEqual(sliding_window(signal, 5, 2, np.hanning(5)).dtype, 
+      np.hanning(5).dtype)
 
-  def test_functionality_3D(self):
-    signal = np.arange(10 * 4 * 2).reshape(2, 4, 10)
-    windows = sliding_window(signal, 5, 2)
-    self.assertEqual(windows.shape, (2, 4, 3, 5))
+  def test_input_errors(self):
+    signal = np.arange(10)
 
-    # test equality with individually windowed signals
-    for i in range(2):
-      for j in range(4):
-        np.testing.assert_equal(
-          sliding_window(signal[i,j,:], 5, 2), windows[i,j,:,:])
+    # invalid window function
+    self.assertRaises(ValueError, sliding_window, signal, 5, 2, np.arange(6))
+    self.assertRaises(ValueError, sliding_window, signal, 5, 2, np.arange(2))
+
+    # invalid shape
+    self.assertRaises(ValueError, 
+      sliding_window, signal.reshape(5, 2), 5, 2, np.arange(6))
+
+
+class TestMisc(unittest.TestCase):
+  def test_stft(self):
+    # assume the windowing is already tested...
+    signal = np.arange(20)
+    windows = sliding_window(signal, 5, 2, np.hanning(5))
+    np.testing.assert_equal(np.fft.rfft(windows, axis=1), stft(signal, 5, 2))
+
+class TestPopcorn(unittest.TestCase):
+  def setUp(self):
+    self.signals = np.arange(4 * 6 * 8 * 1 * 2 * 3).reshape(4, 6, 8, -1)
+
+  def test_noexpansion(self):
+    times2 = lambda signal: signal * 2
+    for axis in range(self.signals.ndim):
+      signals2 = popcorn(times2, axis, self.signals)
+      self.assertEqual(self.signals.shape, signals2.shape)
+      np.testing.assert_equal(self.signals * 2, signals2)
+
+  def test_adddim(self):
+    add_dims = lambda signal, n: np.array([signal] * n)
+    sss = self.signals.shape
+    for nd in range(1, 4):
+      for axis in range(self.signals.ndim):
+        signals2 = popcorn(add_dims, axis, self.signals, nd)
+        self.assertEqual(sss[:axis] + (nd,) + sss[axis:], signals2.shape)
+        # remove new axis and test for equality
+        np.testing.assert_equal(self.signals, np.rollaxis(signals2, axis, 0)[0])
+
+  def test_reshape(self):
+    reshape_1d = lambda signal: signal.reshape(2, -1)
+    sss = self.signals.shape
+    for axis in range(self.signals.ndim):
+      signals2 = popcorn(reshape_1d, axis, self.signals)
+      self.assertEqual(sss[:axis], signals2.shape[:axis])
+      self.assertEqual(sss[axis], np.prod(signals2.shape[axis:axis+2]))
+      self.assertEqual(sss[axis+1:], signals2.shape[axis+2:])
+      np.testing.assert_equal(self.signals, signals2.reshape(sss))
+
       
 class TestSpectrogram(unittest.TestCase):
   def test_not_implemented(self):

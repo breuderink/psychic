@@ -30,26 +30,48 @@ def sliding_window_indices(window_size, window_step, sig_len):
   starts = np.arange(nwindows).reshape(nwindows, 1) * window_step
   return starts + np.arange(window_size)
 
-def sliding_window(signals, window_size, window_step):
-  '''Replaces the last axis with a window axis and a signal axis'''
-  # TODO: use broadcasting magic:
-  # np.array([0, 100]).reshape(2, 1, 1) + wi.reshape(1, 3, 5)
-  # where wi is created using sliding_window_indices()
-  old_shape = signals.shape
-  signals = signals.reshape(-1, old_shape[-1]) # to 2D
+def sliding_window(signal, window_size, window_step, win_func=None):
+  '''Apply a sliding window to a 1D signal'''
+  if signal.ndim != 1:
+    raise ValueError, 'Sliding window works on 1D arrays only!'
+  if win_func != None:
+    if win_func.size != window_size:
+      raise ValueError, 'window_size (%d) does not match win_func.size (%d)' % (
+        window_size, win_func.size)
+  indices = sliding_window_indices(window_size, window_step, signal.shape[0])
+  windows = signal.take(indices=indices)
+  if win_func != None:
+    windows = windows * win_func # broadcasting matches from last dim
+  return windows
 
-  indices = sliding_window_indices(window_size, window_step, signals.shape[-1])
-  result = []
-  for s in signals: 
-    curr_wins = s.take(indices=indices)
-    result.append(curr_wins)
-  result = np.asarray(result)
-  return result.reshape(list(old_shape[:-1]) + list(result.shape[-2:]))
-
-def stft(signals, nfft, stepsize):
+def stft(signal, nfft, stepsize):
   '''Calculate the short-time Fourier transform (STFT)'''
-  wins = sliding_window(signals, nfft, stepsize) * np.hanning(nfft)
-  return np.fft.rfft(wins, axis=signals.ndim)
+  wins = sliding_window(signal, nfft, stepsize, win_func=np.hanning(nfft))
+  return np.fft.rfft(wins, axis=1)
+
+def popcorn(f, axis, array, *args):
+  # array.shape ~ (i, j, k, l), axis = 1
+  array = array.swapaxes(axis, -1)
+  x_shape = array.shape[:-1]
+  # x_shape~ (i, l, k)
+
+  array = array.reshape(-1, array.shape[-1]) 
+  # array.shape ~ (x, j)
+
+  result = np.asarray([f(a, *args) for a in array])
+  y_shape = result.shape[1:]
+  # y_shape ~ (y1, y2, y3)
+
+  result = result.reshape(x_shape + (-1,)) 
+  # result.shape ~ (i, l, k, y)
+  result = result.swapaxes(axis, -1)
+  # result.shape ~ (i, y, k, l)
+
+  final_shape = result.shape[:axis] + y_shape + result.shape[axis+1:]
+  result = result.reshape(final_shape)
+  # result.shape = (i, y1, y2, y3, k, l)
+  return result
+  
 
 def spectrogram(signal, nfft, stepsize):
   '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
