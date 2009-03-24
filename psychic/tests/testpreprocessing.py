@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from psychic.preprocessing import *
+from psychic import *
 
 class TestEventDetection(unittest.TestCase):
   def setUp(self):

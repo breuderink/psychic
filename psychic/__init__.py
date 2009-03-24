@@ -1,3 +1,3 @@
-import bdfreader
-import preprocessing
-import plots
+from bdfreader import BDFReader
+from preprocessing import *
+from plots import *
