@@ -10,6 +10,8 @@ class BDFReader:
     self.bdf = BaseBDFReader(file)
     self.bdf.read_header()
     self.labels = self.bdf.header['label']
+    self.sample_rate = (np.asarray(self.bdf.header['n_samples_per_record']) /
+      np.asarray(self.bdf.header['record_length']))
     self.buff = self.bdf.read_record()
 
   def read_nframes_raw(self, nframes):

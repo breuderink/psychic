@@ -1,6 +1,5 @@
 import logging
 import numpy as np
-from scipy.signal import cheby1, firwin, lfilter
 
 prep_log = logging.getLogger('psychic.preprocessing')
 
@@ -17,11 +16,13 @@ def status_to_events(status_array):
 
 def car(frames, selector=None):
   '''
-  Calculate Comman Average Reference. Used to remove distant sources from EEG.
+  Calculate Common Average Reference. Used to remove distant sources from EEG.
   '''
   if selector==None:
     selector = np.arange(frames.shape[1])
-  return frames - np.mean(frames[:, selector], axis=1).reshape(frames.shape[0], 1)
+  car = frames.copy()
+  car[:,selector] -= np.mean(frames[:, selector], axis=1).reshape(-1, 1)
+  return car
 
 def sliding_window_indices(window_size, window_step, sig_len):
   '''Returns indices for a sliding window with shape [nwindows x window_size]'''
@@ -45,7 +46,8 @@ def sliding_window(signal, window_size, window_step, win_func=None):
   return windows
 
 def stft(signal, nfft, stepsize):
-  '''Calculate the short-time Fourier transform (STFT)'''
+  '''Calculate the short-time Fourier transform (STFT).
+  Returns [windows x FFT coefficients]'''
   wins = sliding_window(signal, nfft, stepsize, win_func=np.hanning(nfft))
   return np.fft.rfft(wins, axis=1)
 
