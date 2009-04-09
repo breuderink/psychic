@@ -26,7 +26,6 @@ class BDFFile:
       sample_rate = b.sample_rate[0]
       ids = (np.arange(frames.shape[0]) / float(sample_rate)).reshape(-1, 1)
 
-      print data_mask, frames.shape
       d = DataSet(
         xs=frames[:,data_mask], 
         ys=frames[:,status_mask].reshape(-1, 1), 

@@ -1,0 +1,4 @@
+-e hg+http://reuderin@hmimercurial.ewi.utwente.nl/hg/golem/#egg=golem
+PyWavelets==0.1.6
+numpy==1.1.1
+scipy==0.6.0

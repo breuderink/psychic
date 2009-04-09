@@ -1,4 +1,4 @@
 syntax: glob
 *.*.swp
 *.pyc
-golem
+env
