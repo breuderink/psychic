@@ -83,10 +83,12 @@ def popcorn(f, axis, array, *args):
 
 def slice(frames, event_indices, offsets):
   '''
-  Slice function, used to extract snippets of EEG from a recording.
+  Slice function, used to extract fixed-length snippets of EEG from a recording.
+  Returns [snippet x frames x channel]
   '''
   slices = []
   off_start, off_end = offsets
+  assert off_start < off_end
   for ei in event_indices:
     start, end = ei + off_start, ei + off_end
     if start < 0 or end > frames.shape[0]:

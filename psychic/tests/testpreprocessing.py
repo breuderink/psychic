@@ -133,6 +133,7 @@ class TestSlice(unittest.TestCase):
     np.testing.assert_equal(slices[1, :, :], np.arange(28, 40).reshape(-1, 2))
 
   def test_outside(self):
-    frames = np.arange(40).reshape(-1, 2)
-    self.assertRaises(Exception, slice, 
-      self.frames, [1, 19], offsets=[-2, 4])
+    np.testing.assert_equal(
+      slice(self.frames, [1, 3, 19], offsets=[-2, 4]),
+      slice(self.frames, [3], offsets=[-2, 4]))
+    
