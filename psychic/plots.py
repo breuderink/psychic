@@ -1,6 +1,7 @@
 import pylab
 import numpy as np
-from topoplot import *
+import topoplot
+from topoplot import plot_topo
 
 def plot_timeseries(frames, spacing=50):
   pylab.plot(frames - np.mean(frames, axis=0) + 

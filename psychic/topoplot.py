@@ -20,6 +20,12 @@ BIOSEMI_32_LOCS = {
   'P8': (0.810, -0.589, -0.029), 'PO3': (-0.409, -0.87, 0.280),
   'PO4': (0.409, -0.87, 0.280), 'Pz': (0.0, -0.719, 0.689),
   'T7': (-1.0, 0.0, -0.029), 'T8': (1.0, 0.0, -0.0299)}
+
+def plot_topo(densities, sensors, sensor_locs):
+  curr_sens = dict([(lab, sensor_locs[lab]) for lab in sensors]) 
+  add_sensors(curr_sens)
+  add_density(densities, sensors, curr_sens, cmap=pylab.cm.jet)
+  add_head()
  
 def add_head():
   ax = pylab.gca()
@@ -76,7 +82,7 @@ def add_density(dens, labels, sensor_dict, cmap=pylab.cm.jet,
   '''
   locs = [sensor_dict[l] for l in labels]
   xs, ys, zs = zip(*locs)
-  RESOLUTION = 300
+  RESOLUTION = 50
   xg = np.linspace(-1, 1, RESOLUTION)
   yg = np.linspace(-1, 1, RESOLUTION)
   zg = pylab.griddata(xs, ys, dens, xg, yg)
@@ -85,18 +91,3 @@ def add_density(dens, labels, sensor_dict, cmap=pylab.cm.jet,
   vmin, vmax = clim
   pylab.imshow(zg, origin='lower', aspect='auto', interpolation='nearest', 
     extent=extent, vmin=vmin, vmax=vmax, cmap=cmap)
-
-def topoplot(densities, sensors, sensor_locs):
-  curr_sens = dict([(lab, sensor_locs[lab]) for lab in sensors]) 
-  add_sensors(curr_sens)
-  add_density(densities, sensors, curr_sens, cmap=pylab.cm.jet)
-  add_head()
-
-if __name__ == '__main__':
-  for i in range(4):
-    pylab.subplot(2, 2, i+1)
-    sensors = ['Cz', 'Fz', 'Fp1', 'C3', 'C4', 'Oz', 'T7']
-    if i == 3: sensors = BIOSEMI_32_LOCS.keys()
-    topoplot(np.random.random(len(sensors)), sensors, BIOSEMI_32_LOCS)
-  pylab.savefig('test.pdf')
-  pylab.savefig('test.png')
