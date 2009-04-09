@@ -1,8 +1,6 @@
 import logging
 import numpy as np
 
-prep_log = logging.getLogger('psychic.preprocessing')
-
 def status_to_events(status_array):
   '''
   Use the lowest 16 bits to extract events from the status channel.
@@ -89,7 +87,8 @@ def slice(frames, event_indices, offsets):
   for ei in event_indices:
     start, end = ei + off_start, ei + off_end
     if start < 0 or end > frames.shape[0]:
-      prep_log.warning('Cannot extract slice [%d, %d]' % (start, end))
+      logging.getLogger('psychic.preprocessing').warning(
+        'Cannot extract slice [%d, %d]' % (start, end))
     else:
       slices.append(frames[start:end, :])
   return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])
