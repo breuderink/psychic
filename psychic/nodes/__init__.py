@@ -1,1 +1,1 @@
-from bdf import BDFFile
+from bdffile import BDFFile

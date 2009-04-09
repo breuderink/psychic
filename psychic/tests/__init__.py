@@ -1,4 +1,4 @@
 from testbdfreader import *
 from testpreprocessing import *
-from testbdf import *
+from testbdffile import *
 from testplots import *
