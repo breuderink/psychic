@@ -72,7 +72,7 @@ class TestSTFT(unittest.TestCase):
 
 
 class TestSpectrogram(unittest.TestCase):
-  def test_not_implemented(self):
+  def test_wave_spike(self):
     beta_spike = np.sin(np.linspace(0, 30 * 2 * np.pi, 512))
     beta_spike[256] = 100
     spec = spectrogram(beta_spike, 64, 32)
@@ -122,7 +122,6 @@ class TestPopcorn(unittest.TestCase):
       np.testing.assert_equal(self.signals, signals2.reshape(sss))
 
       
-
 class TestSlice(unittest.TestCase):
   def setUp(self):
     self.frames = np.arange(40).reshape(-1, 2)
