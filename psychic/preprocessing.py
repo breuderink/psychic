@@ -12,16 +12,6 @@ def status_to_events(status_array):
   events = status[change_ids]
   return (events[np.nonzero(events)], change_ids[np.nonzero(events)])
 
-def car(frames, selector=None):
-  '''
-  Calculate Common Average Reference. Used to remove distant sources from EEG.
-  '''
-  if selector==None:
-    selector = np.arange(frames.shape[1])
-  car = frames.copy()
-  car[:,selector] -= np.mean(frames[:, selector], axis=1).reshape(-1, 1)
-  return car
-
 def sliding_window_indices(window_size, window_step, sig_len):
   '''Returns indices for a sliding window with shape [nwindows x window_size]'''
   nwindows = int(np.floor((sig_len - window_size + window_step) / 

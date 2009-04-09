@@ -20,11 +20,6 @@ class TestEventDetection(unittest.TestCase):
   def test_degenerate(self):
     self.do_test([0], [], [])
 
-class TestCAR(unittest.TestCase):
-  def test_CAR(self):
-    d = np.random.rand(20, 3)
-    d2 = car(d)
-    np.testing.assert_almost_equal(d2.mean(axis=1), np.zeros(d.shape[0]))
 
 class TestSlidingWindow(unittest.TestCase):
   def test_indices(self):
