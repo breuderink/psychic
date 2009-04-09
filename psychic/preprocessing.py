@@ -43,11 +43,19 @@ def sliding_window(signal, window_size, window_step, win_func=None):
     windows = windows * win_func # broadcasting matches from last dim
   return windows
 
+
 def stft(signal, nfft, stepsize):
   '''Calculate the short-time Fourier transform (STFT).
   Returns [windows x FFT coefficients]'''
   wins = sliding_window(signal, nfft, stepsize, win_func=np.hanning(nfft))
   return np.fft.rfft(wins, axis=1)
+  
+
+def spectrogram(signal, nfft, stepsize):
+  '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
+  # abs is the *magnitude* of a complex number
+  return np.abs(stft(signal, nfft, stepsize))
+
 
 def popcorn(f, axis, array, *args):
   # array.shape ~ (i, j, k, l), axis = 1
@@ -71,12 +79,7 @@ def popcorn(f, axis, array, *args):
   result = result.reshape(final_shape)
   # result.shape = (i, y1, y2, y3, k, l)
   return result
-  
 
-def spectrogram(signal, nfft, stepsize):
-  '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
-  # abs is the *magnitude* of a complex number
-  return np.abs(stft(signal, nfft, stepsize))
 
 def slice(frames, event_indices, offsets):
   '''

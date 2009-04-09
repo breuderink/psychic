@@ -62,13 +62,33 @@ class TestSlidingWindow(unittest.TestCase):
     self.assertRaises(ValueError, 
       sliding_window, signal.reshape(5, 2), 5, 2, np.arange(6))
 
-
-class TestMisc(unittest.TestCase):
+class TestSTFT(unittest.TestCase):
   def test_stft(self):
     # assume the windowing is already tested...
-    signal = np.arange(20)
+    # compare fft of hanning-windowed signal with stft
+    signal = np.random.rand(20)
     windows = sliding_window(signal, 5, 2, np.hanning(5))
     np.testing.assert_equal(np.fft.rfft(windows, axis=1), stft(signal, 5, 2))
+
+
+class TestSpectrogram(unittest.TestCase):
+  def test_not_implemented(self):
+    beta_spike = np.sin(np.linspace(0, 30 * 2 * np.pi, 512))
+    beta_spike[256] = 100
+    spec = spectrogram(beta_spike, 64, 32)
+
+    # no negative values
+    self.assert_((spec > 0).all())
+
+    # verify that the spike is centered in time
+    self.assertEqual(spec.shape[0], 15)
+    self.assertEqual(np.argmax(np.mean(spec, axis=1)), 7)
+
+    # verify that the peak frequency ~ 30Hz
+    freqs = np.fft.fftfreq(64, 1./512)
+    beta_i = np.argmin(np.abs(freqs - 30))
+    self.assertEqual(np.argmax(np.mean(spec, axis=0)), beta_i)
+
 
 class TestPopcorn(unittest.TestCase):
   def setUp(self):
@@ -102,10 +122,6 @@ class TestPopcorn(unittest.TestCase):
       np.testing.assert_equal(self.signals, signals2.reshape(sss))
 
       
-class TestSpectrogram(unittest.TestCase):
-  def test_not_implemented(self):
-    self.beta = np.sin(np.linspace(0, 30 * 2 * np.pi, 512))
-    #@@FIXME self.assert_(False)
 
 class TestSlice(unittest.TestCase):
   def setUp(self):
