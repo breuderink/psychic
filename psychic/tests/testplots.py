@@ -11,13 +11,13 @@ class TestPlots(unittest.TestCase):
     plots.plot_timeseries(eeg, spacing=2)
     pylab.savefig('timeseries.png')
 
-  def test_topo(self):
+  def test_scalpplot(self):
     pylab.figure()
-    sensors = plots.topoplot.BIOSEMI_32_LOCS.keys()
+    sensors = plots.scalpplot.BIOSEMI_32_LOCS.keys()
     activity = np.random.randn(len(sensors)) * 0.1
     activity[sensors.index('Cz')] = 1
     activity[sensors.index('Fp1')] = 1
     activity[sensors.index('C3')] = -1
     activity[sensors.index('C4')] = -1
-    plots.plot_topo(activity, sensors, plots.topoplot.BIOSEMI_32_LOCS)
+    plots.plot_scalp(activity, sensors, plots.scalpplot.BIOSEMI_32_LOCS)
     pylab.savefig('topo.png')
