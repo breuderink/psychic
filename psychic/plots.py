@@ -4,7 +4,9 @@ import scalpplot
 from scalpplot import plot_scalp
 from scipy import signal
 
-def plot_timeseries(frames, spacing=50):
+def plot_timeseries(frames, spacing=None):
+  if spacing == None:
+    spacing = np.max(np.std(frames, axis=0)) * 2
   pylab.plot(frames - np.mean(frames, axis=0) + 
     np.arange(frames.shape[1]) * spacing, color='k')
 
