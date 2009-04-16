@@ -1,5 +1,5 @@
 from bdfreader import BDFReader
-from preprocessing import *
+from helpers import *
 from plots import *
 from filtering import *
 import nodes
