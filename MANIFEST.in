@@ -1,0 +1,3 @@
+include docs/*
+include *.txt
+include data
