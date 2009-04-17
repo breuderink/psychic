@@ -1,13 +1,13 @@
 import unittest
 import numpy as np
-from psychic import *
+from .. import utils
 
 class TestEventDetection(unittest.TestCase):
   def setUp(self):
     pass
 
   def do_test(self, status, events, indices):
-    e, i = status_to_events(status)
+    e, i = utils.status_to_events(status)
     np.testing.assert_equal(e, events)
     np.testing.assert_equal(i, indices)
 
@@ -23,14 +23,14 @@ class TestEventDetection(unittest.TestCase):
 
 class TestSlidingWindow(unittest.TestCase):
   def test_indices(self):
-    windows = sliding_window_indices(5, 2, 10)
+    windows = utils.sliding_window_indices(5, 2, 10)
     self.assertEqual(windows.shape, (3, 5))
     np.testing.assert_equal(windows[:, 0], [0, 2, 4])
     np.testing.assert_equal(windows[0, :], range(5))
 
   def test_functionality_1D(self):
     signal = np.arange(10)
-    windows = sliding_window(signal, 5, 2)
+    windows = utils.sliding_window(signal, 5, 2)
     self.assertEqual(windows.shape, (3, 5))
     np.testing.assert_equal(windows[:, 0], [0, 2, 4])
     np.testing.assert_equal(windows[0, :], range(5))
@@ -38,39 +38,42 @@ class TestSlidingWindow(unittest.TestCase):
   def test_winf(self):
     signal = np.arange(10)
     winf = np.arange(5)
-    windows = sliding_window(signal, 5, 2, winf)
+    windows = utils.sliding_window(signal, 5, 2, winf)
     self.assertEqual(windows.shape, (3, 5))
     np.testing.assert_equal(windows[:, 0], [0, 0, 0])
     np.testing.assert_equal(windows[0, :], np.arange(5) ** 2)
 
-    self.assertEqual(sliding_window(signal, 5, 2, np.hanning(5)).dtype, 
+    self.assertEqual(utils.sliding_window(signal, 5, 2, np.hanning(5)).dtype, 
       np.hanning(5).dtype)
 
   def test_input_errors(self):
     signal = np.arange(10)
 
     # invalid window function
-    self.assertRaises(ValueError, sliding_window, signal, 5, 2, np.arange(6))
-    self.assertRaises(ValueError, sliding_window, signal, 5, 2, np.arange(2))
+    self.assertRaises(ValueError, utils.sliding_window, 
+      signal, 5, 2, np.arange(6))
+    self.assertRaises(ValueError, utils.sliding_window, 
+      signal, 5, 2, np.arange(2))
 
     # invalid shape
     self.assertRaises(ValueError, 
-      sliding_window, signal.reshape(5, 2), 5, 2, np.arange(6))
+      utils.sliding_window, signal.reshape(5, 2), 5, 2, np.arange(6))
 
 class TestSTFT(unittest.TestCase):
   def test_stft(self):
     # assume the windowing is already tested...
-    # compare fft of hanning-windowed signal with stft
+    # compare FFT of hanning-windowed signal with STFT
     signal = np.random.rand(20)
-    windows = sliding_window(signal, 5, 2, np.hanning(5))
-    np.testing.assert_equal(np.fft.rfft(windows, axis=1), stft(signal, 5, 2))
+    windows = utils.sliding_window(signal, 5, 2, np.hanning(5))
+    np.testing.assert_equal(np.fft.rfft(windows, axis=1), 
+      utils.stft(signal, 5, 2))
 
 
 class TestSpectrogram(unittest.TestCase):
   def test_wave_spike(self):
     beta_spike = np.sin(np.linspace(0, 30 * 2 * np.pi, 512))
     beta_spike[256] = 100
-    spec = spectrogram(beta_spike, 64, 32)
+    spec = utils.spectrogram(beta_spike, 64, 32)
 
     # no negative values
     self.assert_((spec > 0).all())
@@ -92,7 +95,7 @@ class TestPopcorn(unittest.TestCase):
   def test_noexpansion(self):
     times2 = lambda signal: signal * 2
     for axis in range(self.signals.ndim):
-      signals2 = popcorn(times2, axis, self.signals)
+      signals2 = utils.popcorn(times2, axis, self.signals)
       self.assertEqual(self.signals.shape, signals2.shape)
       np.testing.assert_equal(self.signals * 2, signals2)
 
@@ -101,7 +104,7 @@ class TestPopcorn(unittest.TestCase):
     sss = self.signals.shape
     for nd in range(1, 4):
       for axis in range(self.signals.ndim):
-        signals2 = popcorn(add_dims, axis, self.signals, nd)
+        signals2 = utils.popcorn(add_dims, axis, self.signals, nd)
         self.assertEqual(sss[:axis] + (nd,) + sss[axis:], signals2.shape)
         # remove new axis and test for equality
         np.testing.assert_equal(self.signals, np.rollaxis(signals2, axis, 0)[0])
@@ -110,7 +113,7 @@ class TestPopcorn(unittest.TestCase):
     reshape_1d = lambda signal: signal.reshape(2, -1)
     sss = self.signals.shape
     for axis in range(self.signals.ndim):
-      signals2 = popcorn(reshape_1d, axis, self.signals)
+      signals2 = utils.popcorn(reshape_1d, axis, self.signals)
       self.assertEqual(sss[:axis], signals2.shape[:axis])
       self.assertEqual(sss[axis], np.prod(signals2.shape[axis:axis+2]))
       self.assertEqual(sss[axis+1:], signals2.shape[axis+2:])
@@ -122,13 +125,13 @@ class TestSlice(unittest.TestCase):
     self.frames = np.arange(40).reshape(-1, 2)
 
   def test_slice(self):
-    slices = slice(self.frames, [2, 16], offsets=[-2, 4])
+    slices = utils.slice(self.frames, [2, 16], offsets=[-2, 4])
     self.assertEqual(slices.shape, (2, 6, 2))
     np.testing.assert_equal(slices[0, :, :], np.arange(0, 12).reshape(-1, 2))
     np.testing.assert_equal(slices[1, :, :], np.arange(28, 40).reshape(-1, 2))
 
   def test_outside(self):
     np.testing.assert_equal(
-      slice(self.frames, [1, 3, 19], offsets=[-2, 4]),
-      slice(self.frames, [3], offsets=[-2, 4]))
+      utils.slice(self.frames, [1, 3, 19], offsets=[-2, 4]),
+      utils.slice(self.frames, [3], offsets=[-2, 4]))
     

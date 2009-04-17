@@ -1,4 +1,4 @@
-from testhelpers import *
+from testutils import *
 from testbdfreader import *
 from testbdffile import *
 from testplots import *
