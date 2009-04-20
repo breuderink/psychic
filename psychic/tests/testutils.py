@@ -1,5 +1,6 @@
 import unittest, os
 import numpy as np
+from golem import DataSet
 from .. import utils
 
 class TestEventDetection(unittest.TestCase):
@@ -152,3 +153,32 @@ class TestBDF(unittest.TestCase):
     self.assertEqual(d.nfeatures, 16)
     self.assertEqual(d.ninstances, 60 * 256)
     
+    # test sample rate
+    self.assertEqual(d.extra, {'sample_rate' : 256.})
+
+class TestResampleRec(unittest.TestCase):
+  def setUp(self):
+    xs = np.arange(100).reshape(-1, 2)
+    ys = np.zeros((50, 1))
+    ys[::4] = 2
+    self.d = DataSet(xs=xs, ys=ys, extra={'sample_rate': 20})
+
+  def test_resample(self):
+    d = self.d
+    d2 = utils.resample_rec(d, 10) # factor .5
+    self.assertEqual(d2.ninstances, d.ninstances / 2)
+    self.assertEqual(d2.nfeatures, d.nfeatures)
+    self.assertEqual(d2.feat_lab, d.feat_lab)
+    self.assertEqual(d2.cl_lab, d.cl_lab)
+    self.assertEqual(d2.feat_shape, d.feat_shape)
+    np.testing.assert_equal(d2.ys[::2], np.ones((13, 1)) * 2)
+    self.assertEqual(d2.extra, {'sample_rate': 10})
+
+  def test_overlapping_markers(self):
+    d = self.d
+
+    # test overlapping markers
+    self.assertRaises(AssertionError, utils.resample_rec, d, 4)
+
+    # test too-tightly packed markers
+    self.assertRaises(AssertionError, utils.resample_rec, d, 5)

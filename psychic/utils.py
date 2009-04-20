@@ -2,6 +2,7 @@ import logging
 import numpy as np
 from bdfreader import BDFReader
 from golem import DataSet
+from scipy import signal
 
 def status_to_events(status_array):
   '''
@@ -108,7 +109,22 @@ def bdf_dataset(fname):
       xs=frames[:,data_mask], 
       ys=frames[:,status_mask].reshape(-1, 1), 
       ids=ids, feat_lab=feat_lab, cl_lab=['status'], 
-      extra={'sample_rate': b.sample_rate})
+      extra={'sample_rate': sample_rate})
   finally:
     f.close()
   return d
+
+def resample_rec(d, Fs):
+  factor = float(Fs)/d.extra['sample_rate']
+  xs, ids = signal.resample(d.xs, np.ceil(d.ninstances * factor), t=d.ids)
+  ys = np.zeros((xs.shape[0], 1))
+  (e, ei) = status_to_events(d.ys.flat)
+  ys_i = np.floor(ei * factor).astype(int)
+  ys[ys_i, 0] = e
+
+  assert status_to_events(ys.flat)[0].size == \
+    status_to_events(d.ys.flat)[0].size, 'Resampling loses events!'
+
+  extra = d.extra
+  extra['sample_rate'] = Fs
+  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), default=d)
