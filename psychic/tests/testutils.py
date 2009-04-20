@@ -1,6 +1,6 @@
 import unittest, os
 import numpy as np
-from golem import DataSet
+from golem import DataSet, helpers
 from .. import utils
 
 class TestEventDetection(unittest.TestCase):
@@ -124,18 +124,29 @@ class TestPopcorn(unittest.TestCase):
       
 class TestSlice(unittest.TestCase):
   def setUp(self):
-    self.frames = np.arange(40).reshape(-1, 2)
+    xs = np.arange(40).reshape(-1, 2)
+    ys = np.zeros((20, 1))
+    ys[[0, 2, 16], 0] = 1
+    ys[[4, 12, 19], 0] = 2
+    self.d = DataSet(xs, ys)
 
   def test_slice(self):
-    slices = utils.slice(self.frames, [2, 16], offsets=[-2, 4])
-    self.assertEqual(slices.shape, (2, 6, 2))
-    np.testing.assert_equal(slices[0, :, :], np.arange(0, 12).reshape(-1, 2))
-    np.testing.assert_equal(slices[1, :, :], np.arange(28, 40).reshape(-1, 2))
+    d2 = utils.slice(self.d, dict(b=1, a=2), offsets=[-2, 4])
+    self.assertEqual(d2.feat_shape, (6, 2))
+    self.assertEqual(d2.ninstances, 4)
 
-  def test_outside(self):
-    np.testing.assert_equal(
-      utils.slice(self.frames, [1, 3, 19], offsets=[-2, 4]),
-      utils.slice(self.frames, [3], offsets=[-2, 4]))
+    np.testing.assert_equal(d2.xs[0], np.arange(12))
+    np.testing.assert_equal(d2.xs[1], np.arange(12) + (4 - 2) * 2)
+    np.testing.assert_equal(d2.xs[2], np.arange(12) + (12 - 2) * 2)
+    np.testing.assert_equal(d2.xs[3], np.arange(12) + (16 - 2) * 2)
+
+    np.testing.assert_equal(d2.ys, helpers.to_one_of_n([0, 1, 1, 0]))
+    self.assertEqual(d2.cl_lab, ['b', 'a'])
+
+    self.assertEqual(d2.feat_lab, None)
+    self.assertEqual(d2.feat_nd_lab, 
+      [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
+
 
 class TestBDF(unittest.TestCase):
   def test_load(self):

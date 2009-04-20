@@ -1,7 +1,7 @@
-import logging
+import logging, operator
 import numpy as np
 from bdfreader import BDFReader
-from golem import DataSet
+from golem import DataSet, helpers
 from scipy import signal
 
 def status_to_events(status_array):
@@ -73,24 +73,6 @@ def popcorn(f, axis, array, *args):
   # result.shape = (i, y1, y2, y3, k, l)
   return result
 
-
-def slice(frames, event_indices, offsets):
-  '''
-  Slice function, used to extract fixed-length snippets of EEG from a recording.
-  Returns [snippet x frames x channel]
-  '''
-  slices = []
-  off_start, off_end = offsets
-  assert off_start < off_end
-  for ei in event_indices:
-    start, end = ei + off_start, ei + off_end
-    if start < 0 or end > frames.shape[0]:
-      logging.getLogger('psychic.preprocessing').warning(
-        'Cannot extract slice [%d, %d]' % (start, end))
-    else:
-      slices.append(frames[start:end, :])
-  return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])
-
 def bdf_dataset(fname):
   STATUS = 'Status'
   f = open(fname, 'rb')
@@ -128,3 +110,40 @@ def resample_rec(d, Fs):
   extra = d.extra
   extra['sample_rate'] = Fs
   return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), default=d)
+
+def slice(d, marker_dict, offsets):
+  '''
+  Slice function, used to extract fixed-length snippets of EEG from a recording.
+  Returns [snippet x frames x channel]
+  '''
+  assert len(d.feat_shape) == 1
+  start_off, end_off = offsets
+  xs, ys, ids = [], [], []
+  (events, events_i) = status_to_events(d.ys.flat)
+  for (k, v) in marker_dict.items():
+    for i in events_i[events==v]:
+      (start, end) = i + start_off, i + end_off
+      if start < 0 or end > d.ninstances:
+        logging.getLogger('psychic.utils.slice').warning(
+          'Cannot extract slice %d-%d for class %s' % (start, end, k))
+        continue
+      dslice = d[start:end]
+      xs.append(dslice.xs)
+      ys.append(v)
+      ids.append([d[i].ids.flat[0]])  
+
+  xs = np.asarray(xs)
+  feat_shape = xs.shape[1:]
+  xs = xs.reshape(xs.shape[0], -1)
+  time_lab = ['%.2f' % ti for ti in dslice.ids[:,0] - d[i].ids[0, 0]]
+  feat_nd_lab = [time_lab, d.feat_lab if d.feat_lab 
+    else ['f%d' % i for i in range(d.nfeatures)]]
+  feat_dim_units = ['seconds', 'channel']
+  ys = helpers.to_one_of_n(ys)
+  cl_lab = [lab for lab, _ in sorted(marker_dict.items(), 
+    key=operator.itemgetter(1))]
+  ids = np.asarray(ids)
+  d = DataSet(xs=xs, ys=ys, ids=ids, cl_lab=cl_lab, 
+    feat_shape=feat_shape, feat_nd_lab=feat_nd_lab, 
+    feat_dim_units=feat_dim_units)
+  return d.sorted()
