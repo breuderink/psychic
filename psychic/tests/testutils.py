@@ -1,4 +1,4 @@
-import unittest
+import unittest, os
 import numpy as np
 from .. import utils
 
@@ -58,6 +58,7 @@ class TestSlidingWindow(unittest.TestCase):
     # invalid shape
     self.assertRaises(ValueError, 
       utils.sliding_window, signal.reshape(5, 2), 5, 2, np.arange(6))
+
 
 class TestSTFT(unittest.TestCase):
   def test_stft(self):
@@ -134,4 +135,20 @@ class TestSlice(unittest.TestCase):
     np.testing.assert_equal(
       utils.slice(self.frames, [1, 3, 19], offsets=[-2, 4]),
       utils.slice(self.frames, [3], offsets=[-2, 4]))
+
+class TestBDF(unittest.TestCase):
+  def test_load(self):
+    d = utils.bdf_dataset(os.path.join('data', 'sine-256Hz.bdf'))
+
+    # test labels
+    targets = ['A%d' % (i + 1) for i in range(16)]
+    self.assertEqual(d.feat_lab, targets)
+    self.assertEqual(d.cl_lab, ['status'])
+
+    # test ids ~ time
+    self.assertAlmostEqual(d.ids[256 + 1], 1, 2)
+
+    # test dims
+    self.assertEqual(d.nfeatures, 16)
+    self.assertEqual(d.ninstances, 60 * 256)
     

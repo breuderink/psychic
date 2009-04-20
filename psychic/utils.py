@@ -1,5 +1,7 @@
 import logging
 import numpy as np
+from bdfreader import BDFReader
+from golem import DataSet
 
 def status_to_events(status_array):
   '''
@@ -87,3 +89,26 @@ def slice(frames, event_indices, offsets):
     else:
       slices.append(frames[start:end, :])
   return np.concatenate(slices).reshape(len(slices), -1, frames.shape[1])
+
+def bdf_dataset(fname):
+  STATUS = 'Status'
+  f = open(fname, 'rb')
+  try:
+    b = BDFReader(f)
+    frames = b.read_all()
+
+    data_mask = [i for i, lab in enumerate(b.labels) if lab != STATUS]
+    status_mask = b.labels.index(STATUS)
+    feat_lab = [b.labels[i] for i in data_mask]
+    assert min(b.sample_rate) == max(b.sample_rate)
+    sample_rate = b.sample_rate[0]
+    ids = (np.arange(frames.shape[0]) / float(sample_rate)).reshape(-1, 1)
+
+    d = DataSet(
+      xs=frames[:,data_mask], 
+      ys=frames[:,status_mask].reshape(-1, 1), 
+      ids=ids, feat_lab=feat_lab, cl_lab=['status'], 
+      extra={'sample_rate': b.sample_rate})
+  finally:
+    f.close()
+  return d

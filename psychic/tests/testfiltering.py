@@ -5,7 +5,7 @@ from scipy import signal
 from golem import DataSet
 from ..plots import plot_filt_char, plot_timeseries
 from ..filtering import fir_bandpass
-from ..nodes import Filter, FBFilter, BDFFile
+from ..nodes import Filter, FBFilter
 
 class TestFilters(unittest.TestCase):
   def setUp(self):
