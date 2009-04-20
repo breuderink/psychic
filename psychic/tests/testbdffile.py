@@ -6,7 +6,7 @@ import pylab
 class TestBDF(unittest.TestCase):
   def test_load(self):
     b = BDFFile(os.path.join('data', 'sine-256Hz.bdf'))
-    d = b.train()
+    d = b.test()
 
     # test labels
     targets = ['A%d' % (i + 1) for i in range(16)]

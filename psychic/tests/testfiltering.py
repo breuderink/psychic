@@ -40,18 +40,18 @@ class TestFilter(unittest.TestCase):
   def test_filter(self):
     d = self.d
     n = Filter([-1], [1]) # changes sign
-    d2 = n.train(d)
+    d2 = n.test(d)
     np.testing.assert_equal(self.d.nd_xs, -d2.nd_xs)
 
   def test_filter_axis(self):
     d = self.d
     n = Filter([1, -1], [1], axis=0)
-    d2 = n.train(d)
+    d2 = n.test(d)
     np.testing.assert_equal(d2.xs[0, :], np.arange(10)) # warming up
     np.testing.assert_equal(d2.xs[1:, :], np.ones((9, 10)) * 10) # constant diff
 
     n = Filter([1, -1], [1], axis=1)
-    d2 = n.train(d)
+    d2 = n.test(d)
     np.testing.assert_equal(d2.xs[:, 0], np.arange(10) * 10) # warming up
     np.testing.assert_equal(d2.xs[:, 1:], np.ones((10, 9))) # constant diff
 
@@ -63,20 +63,20 @@ class TestFBFilter(unittest.TestCase):
   def test_zero_delay(self):
     d = self.d
     n = FBFilter([0, 0, 1], [1])
-    d2 = n.train(d)
+    d2 = n.test(d)
     self.assertEqual(d2[:-2], d[:-2])
     np.testing.assert_equal(d2[-2:].xs, np.zeros((2, 10)))
 
   def test_filter_axis(self):
     d = self.d
     n = FBFilter([1, -1], [1], axis=0)
-    d2 = n.train(d)
+    d2 = n.test(d)
     np.testing.assert_equal(d2.xs[-1, :], np.ones(10) * 10)
     np.testing.assert_equal(d2.xs[1:-1,:], np.zeros((8, 10)))
     np.testing.assert_equal(d2.xs[0, :], np.arange(10) - 10)
     
     n = FBFilter([1, -1], [1], axis=1)
-    d2 = n.train(d)
+    d2 = n.test(d)
     np.testing.assert_equal(d2.xs[:, -1], np.ones(10))
     np.testing.assert_equal(d2.xs[:, 1:-1], np.zeros((10, 8)))
     np.testing.assert_equal(d2.xs[:, 0], np.arange(10) * 10 - 1)

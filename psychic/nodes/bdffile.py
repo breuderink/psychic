@@ -9,7 +9,7 @@ class BDFFile:
     self.fname = fname
 
   def train(self, d=None):
-    return self.test(d)
+    pass
 
   def test(self, d=None):
     if d != None:

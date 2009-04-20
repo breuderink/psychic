@@ -7,7 +7,7 @@ class CAR:
     self.mask = mask
 
   def train(self, d):
-    return self.test(d)
+    pass
 
   def test(self, d):
     mask = self.mask if self.mask != None else np.ones(d.nfeatures, np.bool)

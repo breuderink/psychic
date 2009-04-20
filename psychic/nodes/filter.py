@@ -8,7 +8,7 @@ class Filter:
     self.axis = axis
 
   def train(self, d):
-    return self.test(d)
+    pass
 
   def test(self, d):
     fxs = signal.lfilter(self.b, self.a, d.nd_xs, axis=self.axis)
@@ -20,7 +20,7 @@ class FBFilter:
     self.axis = axis
 
   def train(self, d):
-    return self.test(d)
+    pass
 
   def test(self, d):
     b, a = self.b, self.a
