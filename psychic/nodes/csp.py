@@ -58,4 +58,4 @@ class CSP:
     W = self.W
     if W == None:
       return 'CSP (untrained)'
-    return 'CSP (%dD -> %dD)' % (W.shape[0], m)
+    return 'CSP (%dD -> %dD)' % (W.shape[0], W.shape[1])
