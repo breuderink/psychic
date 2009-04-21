@@ -5,3 +5,4 @@ from testcar import *
 from testfiltering import *
 from testresample import *
 from testsimplenodes import *
+from testcsp import *
