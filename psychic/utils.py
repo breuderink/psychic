@@ -99,6 +99,7 @@ def bdf_dataset(fname):
 def resample_rec(d, Fs):
   factor = float(Fs)/d.extra['sample_rate']
   xs, ids = signal.resample(d.xs, np.ceil(d.ninstances * factor), t=d.ids)
+  xs = xs.astype(d.xs.dtype)
   ys = np.zeros((xs.shape[0], 1))
   (e, ei) = status_to_events(d.ys.flat)
   ys_i = np.floor(ei * factor).astype(int)
