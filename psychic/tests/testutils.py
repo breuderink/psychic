@@ -1,4 +1,4 @@
-import unittest, os
+import unittest, os, logging
 import numpy as np
 from golem import DataSet, helpers
 from .. import utils
@@ -122,32 +122,6 @@ class TestPopcorn(unittest.TestCase):
       np.testing.assert_equal(self.signals, signals2.reshape(sss))
 
       
-class TestSlice(unittest.TestCase):
-  def setUp(self):
-    xs = np.arange(40).reshape(-1, 2)
-    ys = np.zeros((20, 1))
-    ys[[0, 2, 16], 0] = 1
-    ys[[4, 12, 19], 0] = 2
-    self.d = DataSet(xs, ys)
-
-  def test_slice(self):
-    d2 = utils.slice(self.d, dict(b=1, a=2), offsets=[-2, 4])
-    self.assertEqual(d2.feat_shape, (6, 2))
-    self.assertEqual(d2.ninstances, 4)
-
-    np.testing.assert_equal(d2.xs[0], np.arange(12))
-    np.testing.assert_equal(d2.xs[1], np.arange(12) + (4 - 2) * 2)
-    np.testing.assert_equal(d2.xs[2], np.arange(12) + (12 - 2) * 2)
-    np.testing.assert_equal(d2.xs[3], np.arange(12) + (16 - 2) * 2)
-
-    np.testing.assert_equal(d2.ys, helpers.to_one_of_n([0, 1, 1, 0]))
-    self.assertEqual(d2.cl_lab, ['b', 'a'])
-
-    self.assertEqual(d2.feat_lab, None)
-    self.assertEqual(d2.feat_nd_lab, 
-      [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
-
-
 class TestBDF(unittest.TestCase):
   def test_load(self):
     d = utils.bdf_dataset(os.path.join('data', 'sine-256Hz.bdf'))
@@ -193,3 +167,31 @@ class TestResampleRec(unittest.TestCase):
 
     # test too-tightly packed markers
     self.assertRaises(AssertionError, utils.resample_rec, d, 5)
+
+
+class TestSlice(unittest.TestCase):
+  def setUp(self):
+    xs = np.arange(40).reshape(-1, 2)
+    ys = np.zeros((20, 1))
+    ys[[0, 2, 16], 0] = 1
+    ys[[4, 12, 19], 0] = 2
+    self.d = DataSet(xs, ys)
+
+  def test_slice(self):
+    logging.getLogger('psychic.utils.slice').setLevel(logging.CRITICAL)
+    d2 = utils.slice(self.d, dict(b=1, a=2), offsets=[-2, 4])
+    logging.getLogger('psychic.utils.slice').setLevel(logging.WARNING)
+    self.assertEqual(d2.feat_shape, (6, 2))
+    self.assertEqual(d2.ninstances, 4)
+
+    np.testing.assert_equal(d2.xs[0], np.arange(12))
+    np.testing.assert_equal(d2.xs[1], np.arange(12) + (4 - 2) * 2)
+    np.testing.assert_equal(d2.xs[2], np.arange(12) + (12 - 2) * 2)
+    np.testing.assert_equal(d2.xs[3], np.arange(12) + (16 - 2) * 2)
+
+    np.testing.assert_equal(d2.ys, helpers.to_one_of_n([0, 1, 1, 0]))
+    self.assertEqual(d2.cl_lab, ['b', 'a'])
+
+    self.assertEqual(d2.feat_lab, None)
+    self.assertEqual(d2.feat_nd_lab, 
+      [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
