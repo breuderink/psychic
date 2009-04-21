@@ -55,7 +55,7 @@ class CSP:
       cl_lab=self.cl_lab, default=d)
 
   def __str__(self):
-    W = self.eigen_cols
+    W = self.W
     if W == None:
       return 'CSP (untrained)'
     return 'CSP (%dD -> %dD)' % (W.shape[0], m)
