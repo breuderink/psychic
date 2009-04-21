@@ -214,3 +214,15 @@ class TestFindSegments(unittest.TestCase):
     logging.getLogger('psychic.utils.find_segments').setLevel(logging.ERROR)
     self.assertEqual(utils.find_segments([3, 1], range(2), 3, 4), [])
     logging.getLogger('psychic.utils.find_segments').setLevel(logging.WARNING)
+
+class TestCutSegments(unittest.TestCase):
+  def setUp(self):
+    ys = np.array([0, 0, 3, 0, 7, 4, 0, 0, 1, 0, 2, 1, 8, 0, 2]).reshape(-1, 1)
+    xs = np.arange(ys.size).reshape(-1, 1)
+    self.d = DataSet(xs, ys)
+
+  def test_cut_segments(self):
+    ds = utils.cut_segments(self.d, [(1, 2), (3, 4)])
+    np.testing.assert_equal(ds[0].ids.flatten(), [2, 3, 4])
+    np.testing.assert_equal(ds[1].ids.flatten(), [8, 9])
+    np.testing.assert_equal(ds[2].ids.flatten(), [11, 12, 13])

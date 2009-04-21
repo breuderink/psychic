@@ -165,3 +165,15 @@ def find_segments(events, event_indices, start_mark, end_mark):
     logging.getLogger('psychic.utils.find_segments').warning(
       'Did not end start marker(s) at %s' % repr(stack))
   return result
+
+def cut_segments(d, marker_tuples):
+  '''
+  Cut a dataset into segment using (start_marker, end_marker) tuples.
+  Returns a list with DataSets.
+  '''
+  segments = []
+  e, ei = status_to_events(d.ys.flat)
+  for (sm, em) in marker_tuples:
+    segments.extend(find_segments(e, ei, sm, em))
+  segments.sort()
+  return [d[s:e] for (s, e) in segments]
