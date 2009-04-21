@@ -8,9 +8,9 @@ class TestEventDetection(unittest.TestCase):
     pass
 
   def do_test(self, status, events, indices):
-    e, i = utils.status_to_events(status)
-    np.testing.assert_equal(e, events)
-    np.testing.assert_equal(i, indices)
+    e, ei = utils.status_to_events(status)
+    np.testing.assert_equal(events, e)
+    np.testing.assert_equal(indices, ei)
 
   def test_single_event(self):
     self.do_test([0, 0, 0, 1, 1, 0, 0, 0], [1], [3])
@@ -178,7 +178,7 @@ class TestSlice(unittest.TestCase):
     self.d = DataSet(xs, ys)
 
   def test_slice(self):
-    logging.getLogger('psychic.utils.slice').setLevel(logging.CRITICAL)
+    logging.getLogger('psychic.utils.slice').setLevel(logging.ERROR)
     d2 = utils.slice(self.d, dict(b=1, a=2), offsets=[-2, 4])
     logging.getLogger('psychic.utils.slice').setLevel(logging.WARNING)
     self.assertEqual(d2.feat_shape, (6, 2))
@@ -195,3 +195,22 @@ class TestSlice(unittest.TestCase):
     self.assertEqual(d2.feat_lab, None)
     self.assertEqual(d2.feat_nd_lab, 
       [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
+
+class TestFindSegments(unittest.TestCase):
+  def test_naive(self):
+    self.assertEqual(utils.find_segments(
+      [1, 3, 3, 2, 4, 4, 1, 3, 3, 2], np.arange(10)-2, 1, 2),
+      [(-2, 1), (4, 7)])
+      
+  def test_overlapping(self):
+    self.assertEqual(utils.find_segments([3, 1, 3, 4, 1, 4], range(6), 3, 4),
+      [(2, 3), (0, 5)])
+
+  def test_malformed(self):
+    self.assertRaises(AssertionError, utils.find_segments, [4, 3, 4], 
+      range(3), 3, 4)
+
+  def test_openended(self):
+    logging.getLogger('psychic.utils.find_segments').setLevel(logging.ERROR)
+    self.assertEqual(utils.find_segments([3, 1], range(2), 3, 4), [])
+    logging.getLogger('psychic.utils.find_segments').setLevel(logging.WARNING)

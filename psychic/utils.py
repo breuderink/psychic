@@ -8,7 +8,7 @@ def status_to_events(status_array):
   '''
   Use the lowest 16 bits to extract events from the status channel.
   Events are encoded as TTL pulses, no event is indicated with the value 0.
-  Returns (events, indices)
+  Returns (events, indices).
   '''
   status = np.asarray(status_array, int) & 0xffff # oh I love Python...
   change_ids = np.nonzero(np.concatenate([[1], np.diff(status)]))[0]
@@ -147,3 +147,21 @@ def slice(d, marker_dict, offsets):
     feat_shape=feat_shape, feat_nd_lab=feat_nd_lab, 
     feat_dim_units=feat_dim_units)
   return d.sorted()
+
+def find_segments(events, event_indices, start_mark, end_mark):
+  '''Helper to find matching start/end markers in an event array'''
+  events, event_indices = np.asarray(events), np.asarray(event_indices)
+  assert events.size == event_indices.size
+  mask = np.logical_or(events==start_mark, events==end_mark)
+  sevents, sevent_ids = events[mask], event_indices[mask]
+  stack, result = [], []
+  for si in range(sevent_ids.size):
+    if sevents[si] == start_mark:
+      stack.append(sevent_ids[si])
+    else:
+      assert stack != [], 'Missing start marker'
+      result.append((stack.pop(), sevent_ids[si]))
+  if not stack == []:
+    logging.getLogger('psychic.utils.find_segments').warning(
+      'Did not end start marker(s) at %s' % repr(stack))
+  return result
