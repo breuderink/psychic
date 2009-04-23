@@ -98,16 +98,21 @@ def bdf_dataset(fname):
 
 def resample_rec(d, Fs):
   factor = float(Fs)/d.extra['sample_rate']
-  xs, ids = signal.resample(d.xs, np.ceil(d.ninstances * factor), t=d.ids)
-  xs = xs.astype(d.xs.dtype)
-  ys = np.zeros((xs.shape[0], 1))
+  new_len = np.ceil(d.ninstances * factor)
+
+  # first calculate ys and check events
+  ys = np.zeros((new_len, 1))
   (e, ei) = status_to_events(d.ys.flat)
   ys_i = np.floor(ei * factor).astype(int)
   ys[ys_i, 0] = e
-
   assert status_to_events(ys.flat)[0].size == \
     status_to_events(d.ys.flat)[0].size, 'Resampling loses events!'
 
+  # calculate xs and ids
+  xs, ids = signal.resample(d.xs, new_len, t=d.ids)
+  xs = xs.astype(d.xs.dtype) # keep old dtype
+
+  # construct new DataSet
   extra = d.extra
   extra['sample_rate'] = Fs
   return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), default=d)
