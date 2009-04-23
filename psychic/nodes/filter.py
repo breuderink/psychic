@@ -11,6 +11,7 @@ class Filter:
     pass
 
   def test(self, d):
+    assert len(d.feat_shape) == 1 # signal.lfiler can crash on 2D data
     fxs = signal.lfilter(self.b, self.a, d.nd_xs, axis=self.axis)
     return DataSet(xs=fxs.reshape(d.xs.shape), default=d)
 
@@ -23,6 +24,7 @@ class FBFilter:
     pass
 
   def test(self, d):
+    assert len(d.feat_shape) == 1 # signal.lfiler can crash on 2D data
     b, a = self.b, self.a
     s = np.swapaxes(d.nd_xs, 0, self.axis) 
     fs = signal.lfilter(b, a, s, axis=0) # forward
