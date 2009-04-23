@@ -226,3 +226,9 @@ class TestCutSegments(unittest.TestCase):
     np.testing.assert_equal(ds[0].ids.flatten(), [2, 3, 4])
     np.testing.assert_equal(ds[1].ids.flatten(), [8, 9])
     np.testing.assert_equal(ds[2].ids.flatten(), [11, 12, 13])
+
+  def test_cut_segments(self):
+    ds = utils.cut_segments(self.d, [(1, 2), (3, 4)], offsets=[1, 1])
+    np.testing.assert_equal(ds[0].ids.flatten(), [3, 4, 5])
+    np.testing.assert_equal(ds[1].ids.flatten(), [9, 10])
+    np.testing.assert_equal(ds[2].ids.flatten(), [12, 13, 14])
