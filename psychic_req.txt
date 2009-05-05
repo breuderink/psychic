@@ -1,4 +1,3 @@
 -e hg+/home/boris/Programming/Python/Golem/stable/#egg=golem
-PyWavelets==0.1.6
-numpy==1.1.1
-scipy==0.6.0
+numpy>=1.1.1
+scipy>=0.6.0
