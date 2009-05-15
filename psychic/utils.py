@@ -136,7 +136,7 @@ def slice(d, marker_dict, offsets):
       dslice = d[start:end]
       xs.append(dslice.xs)
       ys.append(v)
-      ids.append([d[i].ids.flat[0]])  
+      ids.append(dslice.ids[0, :])
 
   xs = np.asarray(xs)
   feat_shape = xs.shape[1:]
@@ -144,14 +144,14 @@ def slice(d, marker_dict, offsets):
   time_lab = ['%.2f' % ti for ti in dslice.ids[:,0] - d[i].ids[0, 0]]
   feat_nd_lab = [time_lab, d.feat_lab if d.feat_lab 
     else ['f%d' % i for i in range(d.nfeatures)]]
-  feat_dim_units = ['seconds', 'channel']
+  feat_dim_lab = ['time', 'channels']
   ys = helpers.to_one_of_n(ys)
   cl_lab = [lab for lab, _ in sorted(marker_dict.items(), 
     key=operator.itemgetter(1))]
   ids = np.asarray(ids)
   d = DataSet(xs=xs, ys=ys, ids=ids, cl_lab=cl_lab, 
     feat_shape=feat_shape, feat_nd_lab=feat_nd_lab, 
-    feat_dim_units=feat_dim_units)
+    feat_dim_lab=feat_dim_lab)
   return d.sorted()
 
 def find_segments(events, event_indices, start_mark, end_mark):

@@ -190,8 +190,10 @@ class TestSlice(unittest.TestCase):
     np.testing.assert_equal(d2.xs[3], np.arange(12) + (16 - 2) * 2)
 
     np.testing.assert_equal(d2.ys, helpers.to_one_of_n([0, 1, 1, 0]))
-    self.assertEqual(d2.cl_lab, ['b', 'a'])
+    
+    np.testing.assert_equal(d2.ids.flatten(), [0, 2, 10, 14])
 
+    self.assertEqual(d2.cl_lab, ['b', 'a'])
     self.assertEqual(d2.feat_lab, None)
     self.assertEqual(d2.feat_nd_lab, 
       [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
