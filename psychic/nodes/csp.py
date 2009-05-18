@@ -4,8 +4,7 @@ from golem import DataSet
 
 class CSP:
   def __init__(self, m=2):
-    assert(m % 2 == 0)
-    self.W = None
+    assert m % 2 == 0, 'CSP works with an *even* number of components.'
     self.m = m
 
   def train(self, d):
@@ -40,10 +39,7 @@ class CSP:
         (self.m, self.W.shape))
       self.m = self.W.shape[1]
 
-    self.cl_lab = d.cl_lab
-
   def test(self, d):
-    assert(len(d.feat_shape) == 2)
     xs = np.concatenate(d.nd_xs, axis=0) - self.mean
     xs = np.dot(xs, self.W).reshape(d.ninstances, -1)
     feat_shape = (d.feat_shape[0], self.m)
@@ -52,10 +48,4 @@ class CSP:
     else:
       feat_nd_lab = None
     return DataSet(xs, feat_nd_lab=feat_nd_lab, feat_shape=feat_shape, 
-      cl_lab=self.cl_lab, default=d)
-
-  def __str__(self):
-    W = self.W
-    if W == None:
-      return 'CSP (untrained)'
-    return 'CSP (%dD -> %dD)' % (W.shape[0], W.shape[1])
+      default=d)

@@ -65,14 +65,13 @@ class TestCSP(unittest.TestCase):
   
   def test_2d(self):
     '''Test CSP on 2D-shaped features'''
-    d, n = self.d, self.n
+    d = DataSet(self.d.xs.reshape(-1, 8), self.d.ys[::2], self.d.ids[::2], 
+      feat_shape=(2, 4))
+    n = CSP(m=2)
     n.train(d)
-    d2 = DataSet(d.xs.reshape(-1, 8), d.ys[::2], d.ids[::2], feat_shape=(2, 4))
-    n2 = CSP(m=2)
-    n2.train(d2)
-    d2 = n2.test(d2)
-    self.assertEqual(d2.nfeatures, 4)
-    self.assertEqual(d2.nclasses, 2)
+    d = n.test(d)
+    self.assertEqual(d.nfeatures, 4)
+    self.assertEqual(d.nclasses, 2)
 
-    cov = np.cov(np.concatenate(d2.nd_xs, axis=0), rowvar=False)
+    cov = np.cov(np.concatenate(d.nd_xs, axis=0), rowvar=False)
     np.testing.assert_almost_equal(cov, np.eye(cov.shape[0]))
