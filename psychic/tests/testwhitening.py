@@ -10,7 +10,8 @@ class TestWhitening(unittest.TestCase):
     np.random.seed(1)
     da = data.gaussian_dataset([100, 100])
     self.d = DataSet(np.hstack([da.xs, np.random.random(da.xs.shape)]), 
-      da.ys, da.ids, feat_shape=(1, 4))
+      da.ys, da.ids, feat_shape=(1, 4), 
+      feat_nd_lab=[['f0'], ['a', 'b', 'c', 'd']])
     self.n = Whitening()
 
   def test_nocov(self):

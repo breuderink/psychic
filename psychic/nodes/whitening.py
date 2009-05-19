@@ -24,7 +24,8 @@ class Whitening:
     xs = np.concatenate(d.nd_xs, axis=0) - self.mean
     xs = np.dot(xs, self.P).reshape(d.ninstances, -1)
     if d.feat_nd_lab:
-      feat_nd_lab = [d.feat_nd_lab[0], ['WC%d' % ci for ci in range(self.m)]]
+      feat_nd_lab = [d.feat_nd_lab[0], 
+        ['WC%d' % ci for ci in range(xs.shape[1])]]
     else:
       feat_nd_lab = None
     return DataSet(xs, feat_nd_lab=feat_nd_lab, default=d)
