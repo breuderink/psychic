@@ -158,6 +158,7 @@ class TestResampleRec(unittest.TestCase):
     self.assertEqual(d2.feat_shape, d.feat_shape)
     np.testing.assert_equal(d2.ys[::2], np.ones((13, 1)) * 2)
     self.assertEqual(d2.extra, {'sample_rate': 10})
+    self.assertEqual(np.mean(np.diff(d2.ids.flatten())), 2)
 
   def test_overlapping_markers(self):
     d = self.d
