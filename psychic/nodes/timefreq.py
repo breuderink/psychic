@@ -8,7 +8,7 @@ class TFC:
     self.nfft, self.win_step = nfft, win_step
 
   def train(self, d):
-    return self.test(d)
+    pass
   
   def test(self, d):
     assert len(d.feat_shape) == 2 # [frames x channels]
