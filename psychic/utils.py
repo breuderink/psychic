@@ -113,9 +113,9 @@ def resample_rec(d, Fs):
   xs = xs.astype(d.xs.dtype) # keep old dtype
 
   # construct new DataSet
-  extra = d.extra
+  extra = d.extra.copy()
   extra['sample_rate'] = Fs
-  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), default=d)
+  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
 
 def slice(d, marker_dict, offsets):
   '''
