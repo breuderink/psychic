@@ -3,8 +3,6 @@ from testbdfreader import *
 from testplots import *
 from testcar import *
 from testfiltering import *
-from testresample import *
-from testsimplenodes import *
 from testcsp import *
 from testwhitening import *
 from testtimefreq import *
