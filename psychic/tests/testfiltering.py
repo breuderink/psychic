@@ -4,8 +4,7 @@ import pylab
 from scipy import signal
 from golem import DataSet
 from ..plots import plot_filt_char, plot_timeseries
-from ..filtering import fir_bandpass
-from ..nodes import Filter, FBFilter
+from ..filtering import fir_bandpass, fbfilter
 
 class TestFilters(unittest.TestCase):
   def setUp(self):
@@ -33,26 +32,12 @@ class TestFilters(unittest.TestCase):
     pylab.close()
 
 
-class TestFilter(unittest.TestCase):
-  def setUp(self):
-    self.d = DataSet(xs=np.arange(100).reshape(-1, 10).astype(float), 
-      ys=np.ones(10).reshape(-1, 1))
-
-  def test_filter(self):
-    d = self.d
-    n = Filter([-1], [1]) # changes sign
-    d2 = n.test(d)
-    np.testing.assert_equal(self.d.nd_xs, -d2.nd_xs)
-
-
 class TestFBFilter(unittest.TestCase):
   def setUp(self):
-    self.d = DataSet(xs=np.arange(100).reshape(-1, 10).astype(float), 
-      ys=np.ones(10).reshape(-1, 1))
-
+    self.signal = np.arange(100).reshape(-1, 10).astype(float)
+  
   def test_zero_delay(self):
-    d = self.d
-    n = FBFilter([0, 0, 1], [1])
-    d2 = n.test(d)
-    self.assertEqual(d2[:-2], d[:-2])
-    np.testing.assert_equal(d2[-2:].xs, np.zeros((2, 10)))
+    signal = self.signal
+    signal2 = fbfilter([0, 0, 1], [1], signal)
+    np.testing.assert_equal(signal2[:-2], signal[:-2])
+    np.testing.assert_equal(signal2[-2:], np.zeros((2, 10)))

@@ -15,3 +15,7 @@ def fir_bandpass(start, end, transition, Fs=1.):
     start, end, end+transition, Fs/2], float)
   gain = [0, 1, 0]
   return (signal.remez(M, bands, gain, type='bandpass', Hz=Fs), 1)
+
+def fbfilter(b, a, xs):
+  xs = signal.lfilter(b, a, xs, axis=0) # forward
+  return np.flipud(signal.lfilter(b, a, np.flipud(xs), axis=0)) # backward
