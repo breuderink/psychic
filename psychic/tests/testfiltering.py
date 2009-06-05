@@ -4,7 +4,7 @@ import pylab
 from scipy import signal
 from golem import DataSet
 from ..plots import plot_filt_char, plot_timeseries
-from ..filtering import fir_bandpass, fbfilter
+from ..filtering import fir_bandpass
 
 class TestFilters(unittest.TestCase):
   def setUp(self):
@@ -30,14 +30,3 @@ class TestFilters(unittest.TestCase):
     plot_filt_char(b, a, Fs=self.Fs)
     pylab.savefig('fir_bp50_100.eps')
     pylab.close()
-
-
-class TestFBFilter(unittest.TestCase):
-  def setUp(self):
-    self.signal = np.arange(100).reshape(-1, 10).astype(float)
-  
-  def test_zero_delay(self):
-    signal = self.signal
-    signal2 = fbfilter([0, 0, 1], [1], signal)
-    np.testing.assert_equal(signal2[:-2], signal[:-2])
-    np.testing.assert_equal(signal2[-2:], np.zeros((2, 10)))
