@@ -143,32 +143,32 @@ class TestBDF(unittest.TestCase):
 class TestResampleStatus(unittest.TestCase):
   def test_normal(self):
     np.testing.assert_equal(
-      utils.resample_status([1, 0, 0, 2, 0, 0], 2), [1, 2])
+      utils.resample_markers([1, 0, 0, 2, 0, 0], 2), [1, 2])
     np.testing.assert_equal(
-      utils.resample_status([0, 0, 0, 0, 0, 0], 2), [0, 0])
+      utils.resample_markers([0, 0, 0, 0, 0, 0], 2), [0, 0])
     np.testing.assert_equal(
-      utils.resample_status([1, 0, 0, 0, 0, 2], 2), [1, 2])
+      utils.resample_markers([1, 0, 0, 0, 0, 2], 2), [1, 2])
     np.testing.assert_equal(
-      utils.resample_status([0, 0, 1, 0, 0, 2], 2), [1, 2])
+      utils.resample_markers([0, 0, 1, 0, 0, 2], 2), [1, 2])
     np.testing.assert_equal(
-      utils.resample_status([0, 0, 1, 0, 0, 2], 3), [0, 1, 2])
+      utils.resample_markers([0, 0, 1, 0, 0, 2], 3), [0, 1, 2])
 
   def test_overlap(self):
-    self.assertRaises(AssertionError, utils.resample_status,
+    self.assertRaises(AssertionError, utils.resample_markers,
       [1, 2, 3, 4], 2)
-    self.assertRaises(AssertionError, utils.resample_status,
+    self.assertRaises(AssertionError, utils.resample_markers,
       [0, 0, 3, 4], 2)
-    self.assertRaises(AssertionError, utils.resample_status,
+    self.assertRaises(AssertionError, utils.resample_markers,
       [1, 2, 0, 0], 2)
 
   def test_overlap_delay(self):
     np.testing.assert_equal(
-      utils.resample_status([1, 2, 0, 0], 2, max_delay=1), [1, 2])
+      utils.resample_markers([1, 2, 0, 0], 2, max_delay=1), [1, 2])
     np.testing.assert_equal(
-      utils.resample_status([1, 2, 3, 0, 0, 0], 3, max_delay=1), [1, 2, 3])
-    self.assertRaises(AssertionError, utils.resample_status,
+      utils.resample_markers([1, 2, 3, 0, 0, 0], 3, max_delay=1), [1, 2, 3])
+    self.assertRaises(AssertionError, utils.resample_markers,
       [1, 2, 3, 4, 0, 0, 0, 0], 4, max_delay=1)
-    self.assertRaises(AssertionError, utils.resample_status,
+    self.assertRaises(AssertionError, utils.resample_markers,
       [1, 2, 3, 0], 2, max_delay=2)
 
 class TestResample(unittest.TestCase):

@@ -95,7 +95,7 @@ def bdf_dataset(fname):
     f.close()
   return d
 
-def resample_status(status, newlen, max_delay=0):
+def resample_markers(status, newlen, max_delay=0):
   '''
   Resample a marker stream without losing markers. max_delay specifies how
   many frames the markers can be delayed in *target frames*. 
@@ -115,7 +115,7 @@ def resample_status(status, newlen, max_delay=0):
 def resample_rec(d, factor, max_marker_delay=0):
   '''Resample a recording to length d.ninstances * factor'''
   new_len = int(d.ninstances * factor)
-  ys = resample_status(d.ys.flatten(), new_len, 
+  ys = resample_markers(d.ys.flatten(), new_len, 
     max_delay=max_marker_delay).reshape(-1, 1)
 
   # calculate xs and ids
@@ -129,7 +129,7 @@ def resample_rec(d, factor, max_marker_delay=0):
 def decimate_rec(d, factor, max_marker_delay=0):
   '''Decimate a recording using an anti-aliasing filter.'''
   assert isinstance(factor, int), 'Decimation factor should be an int'
-  ys = resample_status(d.ys.flatten(), d.ninstances/factor,
+  ys = resample_markers(d.ys.flatten(), d.ninstances/factor,
     max_delay=max_marker_delay).reshape(-1, 1)
 
   # anti-aliasing filter
