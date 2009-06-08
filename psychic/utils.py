@@ -95,23 +95,28 @@ def bdf_dataset(fname):
     f.close()
   return d
 
-def resample_status(status, newlen):
+def resample_status(status, newlen, max_delay=0):
+  '''
+  Resample a marker stream without losing markers. max_delay specifies how
+  many frames the markers can be delayed in *target frames*. 
+  '''
   factor = float(newlen)/len(status)
-  ys = np.zeros((newlen, 1))
+  ys = np.zeros(newlen)
   evs = [(e, int(ei * factor)) for (e, ei) in zip(*status_to_events(status))]
   last_ei = -1
   for (e, ei) in evs:
-    assert(last_ei < ei)
     if last_ei >= ei:
-      log.warning('Resampling causes marker delays!')
-      ei = last_ei + 1
+      old_ei, ei = ei, last_ei + 1
+      assert ei - old_ei <= max_delay, 'Markers are delayed to much.'
+    assert ei < len(ys)
     ys[ei], last_ei = e, ei
   return ys
-    
 
-def resample_rec(d, factor):
+def resample_rec(d, factor, max_marker_delay=0):
+  '''Resample a recording to length d.ninstances * factor'''
   new_len = int(d.ninstances * factor)
-  ys = resample_status(d.ys.flatten(), new_len).reshape(-1, 1)
+  ys = resample_status(d.ys.flatten(), new_len, 
+    max_delay=max_marker_delay).reshape(-1, 1)
 
   # calculate xs and ids
   xs, ids = signal.resample(d.xs, new_len, t=d.ids)
@@ -121,9 +126,11 @@ def resample_rec(d, factor):
   extra = d.extra.copy()
   return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
 
-def decimate_rec(d, factor):
+def decimate_rec(d, factor, max_marker_delay=0):
+  '''Decimate a recording using an anti-aliasing filter.'''
   assert isinstance(factor, int), 'Decimation factor should be an int'
-  ys = resample_status(d.ys.flatten(), d.ninstances/factor).reshape(-1, 1)
+  ys = resample_status(d.ys.flatten(), d.ninstances/factor,
+    max_delay=max_marker_delay).reshape(-1, 1)
 
   # anti-aliasing filter
   (b, a) = signal.iirfilter(8, .8 / factor, btype='lowpass', rp=0.05, 

@@ -140,10 +140,41 @@ class TestBDF(unittest.TestCase):
     
     self.assertEqual(d.extra, {})
 
+class TestResampleStatus(unittest.TestCase):
+  def test_normal(self):
+    np.testing.assert_equal(
+      utils.resample_status([1, 0, 0, 2, 0, 0], 2), [1, 2])
+    np.testing.assert_equal(
+      utils.resample_status([0, 0, 0, 0, 0, 0], 2), [0, 0])
+    np.testing.assert_equal(
+      utils.resample_status([1, 0, 0, 0, 0, 2], 2), [1, 2])
+    np.testing.assert_equal(
+      utils.resample_status([0, 0, 1, 0, 0, 2], 2), [1, 2])
+    np.testing.assert_equal(
+      utils.resample_status([0, 0, 1, 0, 0, 2], 3), [0, 1, 2])
+
+  def test_overlap(self):
+    self.assertRaises(AssertionError, utils.resample_status,
+      [1, 2, 3, 4], 2)
+    self.assertRaises(AssertionError, utils.resample_status,
+      [0, 0, 3, 4], 2)
+    self.assertRaises(AssertionError, utils.resample_status,
+      [1, 2, 0, 0], 2)
+
+  def test_overlap_delay(self):
+    np.testing.assert_equal(
+      utils.resample_status([1, 2, 0, 0], 2, max_delay=1), [1, 2])
+    np.testing.assert_equal(
+      utils.resample_status([1, 2, 3, 0, 0, 0], 3, max_delay=1), [1, 2, 3])
+    self.assertRaises(AssertionError, utils.resample_status,
+      [1, 2, 3, 4, 0, 0, 0, 0], 4, max_delay=1)
+    self.assertRaises(AssertionError, utils.resample_status,
+      [1, 2, 3, 0], 2, max_delay=2)
+
 class TestResample(unittest.TestCase):
   def setUp(self):
-    xs = np.arange(100).reshape(-1, 2)
-    ys = np.zeros((50, 1))
+    xs = np.arange(1000).reshape(-1, 2)
+    ys = np.zeros((500, 1))
     ys[::4] = 2
     self.d = DataSet(xs=xs, ys=ys)
 
@@ -155,8 +186,13 @@ class TestResample(unittest.TestCase):
     self.assertEqual(d2.feat_lab, d.feat_lab)
     self.assertEqual(d2.cl_lab, d.cl_lab)
     self.assertEqual(d2.feat_shape, d.feat_shape)
-    np.testing.assert_equal(d2.ys[::2], np.ones((13, 1)) * 2)
+    np.testing.assert_equal(d2.ys[::2], 2)
     self.assertEqual(np.mean(np.diff(d2.ids.flatten())), 2)
+
+    # Testing the decimation itself is more difficult due to boundary
+    # artifacts, and is the responsibility of Scipy.
+    # We do a rough test that it should be similar to naive resampling:
+    self.assert_(np.std((d2.xs - d.xs[::2])[100:-100,:]) < 0.6)
 
   def test_overlapping_markers(self):
     d = self.d
@@ -192,7 +228,7 @@ class TestDecimate(unittest.TestCase):
     self.assertEqual(np.mean(np.diff(d2.ids.flatten())), 2)
 
     self.assertEqual(np.argsort(np.abs(np.fft.rfft(d.xs[::2,0])))[-2],
-      2, 'Without the AA-filter the f=.5 is most power')
+      2, 'Without the AA-filter the f=1./2 has most power')
     self.assertEqual(np.argsort(np.abs(np.fft.rfft(d2.xs[:,0])))[-2],
       8, 'With the AA-filter, f=1./8 has most power.')
 
