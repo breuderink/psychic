@@ -8,7 +8,7 @@ class TestEventDetection(unittest.TestCase):
     pass
 
   def do_test(self, status, events, indices):
-    e, ei = utils.status_to_events(status)
+    e, ei = utils.markers_to_events(status)
     np.testing.assert_equal(events, e)
     np.testing.assert_equal(indices, ei)
 

@@ -4,15 +4,15 @@ from bdfreader import BDFReader
 from golem import DataSet, helpers
 from scipy import signal
 
-def status_to_events(status_array):
+def markers_to_events(marker_array):
   '''
   Use the lowest 16 bits to extract events from the status channel.
   Events are encoded as TTL pulses, no event is indicated with the value 0.
   Returns (events, indices).
   '''
-  status = np.asarray(status_array, int) & 0xffff # oh I love Python...
-  change_ids = np.nonzero(np.concatenate([[1], np.diff(status)]))[0]
-  events = status[change_ids]
+  markers = np.asarray(marker_array, int)
+  change_ids = np.nonzero(np.concatenate([[1], np.diff(markers)]))[0]
+  events = markers[change_ids]
   return (events[np.nonzero(events)], change_ids[np.nonzero(events)])
 
 def sliding_window_indices(window_size, window_step, sig_len):
@@ -86,23 +86,22 @@ def bdf_dataset(fname):
     assert min(b.sample_rate) == max(b.sample_rate)
     sample_rate = b.sample_rate[0]
     ids = (np.arange(frames.shape[0]) / float(sample_rate)).reshape(-1, 1)
-
     d = DataSet(
       xs=frames[:,data_mask], 
-      ys=frames[:,status_mask].reshape(-1, 1), 
+      ys=frames[:,status_mask].reshape(-1, 1).astype(int) & 0xffff, 
       ids=ids, feat_lab=feat_lab, cl_lab=['status'])
   finally:
     f.close()
   return d
 
-def resample_markers(status, newlen, max_delay=0):
+def resample_markers(markers, newlen, max_delay=0):
   '''
   Resample a marker stream without losing markers. max_delay specifies how
   many frames the markers can be delayed in *target frames*. 
   '''
-  factor = float(newlen)/len(status)
+  factor = float(newlen)/len(markers)
   ys = np.zeros(newlen)
-  evs = [(e, int(ei * factor)) for (e, ei) in zip(*status_to_events(status))]
+  evs = [(e, int(ei * factor)) for (e, ei) in zip(*markers_to_events(markers))]
   last_ei = -1
   for (e, ei) in evs:
     if last_ei >= ei:
@@ -156,7 +155,7 @@ def slice(d, marker_dict, offsets):
   assert len(d.feat_shape) == 1
   start_off, end_off = offsets
   xs, ys, ids = [], [], []
-  (events, events_i) = status_to_events(d.ys.flat)
+  (events, events_i) = markers_to_events(d.ys.flat)
   for (k, v) in marker_dict.items():
     for i in events_i[events==v]:
       (start, end) = i + start_off, i + end_off
@@ -211,7 +210,7 @@ def cut_segments(d, marker_tuples, offsets=[0, 0]):
   '''
   start_off, end_off = offsets
   segments = []
-  e, ei = status_to_events(d.ys.flat)
+  e, ei = markers_to_events(d.ys.flat)
   for (sm, em) in marker_tuples:
     segments.extend(find_segments(e, ei, sm, em))
   segments.sort()
