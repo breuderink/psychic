@@ -106,7 +106,7 @@ def resample_markers(markers, newlen, max_delay=0):
   for (e, ei) in evs:
     if last_ei >= ei:
       old_ei, ei = ei, last_ei + 1
-      assert ei - old_ei <= max_delay, 'Markers are delayed to much.'
+      assert ei - old_ei <= max_delay, 'Markers are delayed too much.'
     assert ei < len(ys)
     ys[ei], last_ei = e, ei
   return ys

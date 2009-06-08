@@ -1,5 +1,4 @@
-1 decimate
-1 unittests for decimate and downsample ok
+1 BUG resample_markers can glue together markers.
 1 spectogram
 2 AUC-o-gram
 2 bdf_dataset has to strip battery info etc.
