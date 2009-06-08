@@ -1,5 +1,8 @@
-1 slicing
+1 decimate
+1 unittests for decimate and downsample ok
 1 spectogram
-1 AUC-o-gram
+2 AUC-o-gram
+2 bdf_dataset has to strip battery info etc.
 2 BDF-content unittest
+3 EDF loader
 2 santity check in preprocessing (bad channels, NaNs, incontinuities, CM?)

@@ -138,37 +138,79 @@ class TestBDF(unittest.TestCase):
     self.assertEqual(d.nfeatures, 16)
     self.assertEqual(d.ninstances, 60 * 256)
     
-    # test sample rate
-    self.assertEqual(d.extra, {'sample_rate' : 256.})
+    self.assertEqual(d.extra, {})
 
-class TestResampleRec(unittest.TestCase):
+class TestResample(unittest.TestCase):
   def setUp(self):
     xs = np.arange(100).reshape(-1, 2)
     ys = np.zeros((50, 1))
     ys[::4] = 2
-    self.d = DataSet(xs=xs, ys=ys, extra={'sample_rate': 20})
+    self.d = DataSet(xs=xs, ys=ys)
 
   def test_resample(self):
     d = self.d
-    d2 = utils.resample_rec(d, 10) # factor .5
+    d2 = utils.resample_rec(d, .5)
     self.assertEqual(d2.ninstances, d.ninstances / 2)
     self.assertEqual(d2.nfeatures, d.nfeatures)
     self.assertEqual(d2.feat_lab, d.feat_lab)
     self.assertEqual(d2.cl_lab, d.cl_lab)
     self.assertEqual(d2.feat_shape, d.feat_shape)
     np.testing.assert_equal(d2.ys[::2], np.ones((13, 1)) * 2)
-    self.assertEqual(d2.extra, {'sample_rate': 10})
     self.assertEqual(np.mean(np.diff(d2.ids.flatten())), 2)
 
   def test_overlapping_markers(self):
     d = self.d
-
     # test overlapping markers
-    self.assertRaises(AssertionError, utils.resample_rec, d, 4)
+    self.assertRaises(AssertionError, utils.decimate_rec, d, 5)
 
-    # test too-tightly packed markers
-    self.assertRaises(AssertionError, utils.resample_rec, d, 5)
 
+class TestDecimate(unittest.TestCase):
+  def setUp(self):
+    xs = np.arange(100).reshape(-1, 2)
+    ys = np.zeros((50, 1))
+    ys[::4] = 2
+    self.d = DataSet(xs=xs, ys=ys)
+
+  def test_aa(self):
+    # Create signal with a LF and a HF part. HF should cause aliasing
+    xs = np.zeros(128)
+    xs[[-2, -3]] = 4 # HF
+    xs[8] = 1 # LF
+    xs = np.fft.irfft(xs).reshape(-1, 1) + 1
+
+    ys = np.zeros(xs.shape)
+    ys[::4] = 2
+    d = DataSet(xs=xs, ys=ys)
+
+    d2 = utils.decimate_rec(d, 2)
+    self.assertEqual(d2.ninstances, d.ninstances / 2)
+    self.assertEqual(d2.nfeatures, d.nfeatures)
+    self.assertEqual(d2.feat_lab, d.feat_lab)
+    self.assertEqual(d2.cl_lab, d.cl_lab)
+    self.assertEqual(d2.feat_shape, d.feat_shape)
+    np.testing.assert_equal(d2.ys[::2], 2)
+    self.assertEqual(np.mean(np.diff(d2.ids.flatten())), 2)
+
+    self.assertEqual(np.argsort(np.abs(np.fft.rfft(d.xs[::2,0])))[-2],
+      2, 'Without the AA-filter the f=.5 is most power')
+    self.assertEqual(np.argsort(np.abs(np.fft.rfft(d2.xs[:,0])))[-2],
+      8, 'With the AA-filter, f=1./8 has most power.')
+
+  def test_decimate(self):
+    d = self.d
+    d2 = utils.decimate_rec(d, 2)
+    self.assertEqual(d2.ninstances, d.ninstances / 2)
+    self.assertEqual(d2.nfeatures, d.nfeatures)
+    self.assertEqual(d2.feat_lab, d.feat_lab)
+    self.assertEqual(d2.cl_lab, d.cl_lab)
+    self.assertEqual(d2.feat_shape, d.feat_shape)
+    np.testing.assert_equal(d2.ys[::2], np.ones((13, 1)) * 2)
+    self.assertEqual(np.mean(np.diff(d2.ids.flatten())), 2)
+
+  def test_overlapping_markers(self):
+    d = self.d
+    # test overlapping markers
+    self.assertRaises(AssertionError, utils.decimate_rec, d, 4)
 
 class TestSlice(unittest.TestCase):
   def setUp(self):

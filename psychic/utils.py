@@ -90,23 +90,28 @@ def bdf_dataset(fname):
     d = DataSet(
       xs=frames[:,data_mask], 
       ys=frames[:,status_mask].reshape(-1, 1), 
-      ids=ids, feat_lab=feat_lab, cl_lab=['status'], 
-      extra={'sample_rate': sample_rate})
+      ids=ids, feat_lab=feat_lab, cl_lab=['status'])
   finally:
     f.close()
   return d
 
-def resample_rec(d, Fs):
-  factor = float(Fs)/d.extra['sample_rate']
-  new_len = np.ceil(d.ninstances * factor)
+def resample_status(status, newlen):
+  factor = float(newlen)/len(status)
+  ys = np.zeros((newlen, 1))
+  evs = [(e, int(ei * factor)) for (e, ei) in zip(*status_to_events(status))]
+  last_ei = -1
+  for (e, ei) in evs:
+    assert(last_ei < ei)
+    if last_ei >= ei:
+      log.warning('Resampling causes marker delays!')
+      ei = last_ei + 1
+    ys[ei], last_ei = e, ei
+  return ys
+    
 
-  # first calculate ys and check events
-  ys = np.zeros((new_len, 1))
-  (e, ei) = status_to_events(d.ys.flat)
-  ys_i = np.floor(ei * factor).astype(int)
-  ys[ys_i, 0] = e
-  assert status_to_events(ys.flat)[0].size == \
-    status_to_events(d.ys.flat)[0].size, 'Resampling loses events!'
+def resample_rec(d, factor):
+  new_len = int(d.ninstances * factor)
+  ys = resample_status(d.ys.flatten(), new_len).reshape(-1, 1)
 
   # calculate xs and ids
   xs, ids = signal.resample(d.xs, new_len, t=d.ids)
@@ -114,7 +119,26 @@ def resample_rec(d, Fs):
 
   # construct new DataSet
   extra = d.extra.copy()
-  extra['sample_rate'] = Fs
+  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
+
+def decimate_rec(d, factor):
+  assert isinstance(factor, int), 'Decimation factor should be an int'
+  ys = resample_status(d.ys.flatten(), d.ninstances/factor).reshape(-1, 1)
+
+  # anti-aliasing filter
+  (b, a) = signal.iirfilter(8, .8 / factor, btype='lowpass', rp=0.05, 
+    ftype='cheby1')
+  xs = d.xs.copy()
+  for i in range(d.nfeatures):
+    xs[:,i] = signal.filtfilt(b, a, xs[:, i])
+
+  xs = np.ascontiguousarray(xs[::factor,:]).astype(d.xs.dtype)
+
+  # calc ids
+  ids = np.ascontiguousarray(d.ids[::factor,:]).astype(d.ids.dtype)
+
+  # construct new DataSet
+  extra = d.extra.copy()
   return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
 
 def slice(d, marker_dict, offsets):
