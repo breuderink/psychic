@@ -6,7 +6,7 @@ from scipy import signal
 
 def markers_to_events(marker_array):
   '''
-  Use the lowest 16 bits to extract events from the status channel.
+  Extract events from the array with markers.
   Events are encoded as TTL pulses, no event is indicated with the value 0.
   Returns (events, indices).
   '''
@@ -36,19 +36,16 @@ def sliding_window(signal, window_size, window_step, win_func=None):
     windows = windows * win_func # broadcasting matches from last dim
   return windows
 
-
 def stft(signal, nfft, stepsize):
   '''Calculate the short-time Fourier transform (STFT).
   Returns [windows x FFT coefficients]'''
   wins = sliding_window(signal, nfft, stepsize, win_func=np.hanning(nfft))
   return np.fft.rfft(wins, axis=1)
-  
 
 def spectrogram(signal, nfft, stepsize):
   '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
   # abs is the *magnitude* of a complex number
   return np.abs(stft(signal, nfft, stepsize))
-
 
 def popcorn(f, axis, array, *args):
   # array.shape ~ (i, j, k, l), axis = 1
@@ -99,16 +96,22 @@ def resample_markers(markers, newlen, max_delay=0):
   Resample a marker stream without losing markers. max_delay specifies how
   many frames the markers can be delayed in *target frames*. 
   '''
-  factor = float(newlen)/len(markers)
   ys = np.zeros(newlen)
-  evs = [(e, int(ei * factor)) for (e, ei) in zip(*markers_to_events(markers))]
-  last_ei = -1
-  for (e, ei) in evs:
-    if last_ei >= ei:
-      old_ei, ei = ei, last_ei + 1
-      assert ei - old_ei <= max_delay, 'Markers are delayed too much.'
-    assert ei < len(ys)
-    ys[ei], last_ei = e, ei
+  factor = float(newlen)/len(markers)
+  e, ei = markers_to_events(markers)
+  if len(ei) > 0:
+    ei_start = (ei * factor).astype(int)
+    ei = ei_start.copy()
+
+    while True:
+      offending = np.hstack([-1, np.diff(ei)]) == 0
+      if (offending == False).all():
+        break
+      ei[offending] += 1
+      assert max(ei - ei_start) <= max_delay, 'Markers are delayed too much'
+    assert min(np.diff(ei)) > 0, 'Markers are overlapping after resampling'
+    assert max(ei) < newlen, 'Delayed markers out of bounds'
+    ys[ei] = e
   return ys
 
 def resample_rec(d, factor, max_marker_delay=0):

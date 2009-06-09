@@ -171,6 +171,10 @@ class TestResampleStatus(unittest.TestCase):
     self.assertRaises(AssertionError, utils.resample_markers,
       [1, 2, 3, 0], 2, max_delay=2)
 
+  def test_spacing(self):
+    np.testing.assert_equal(
+      utils.resample_markers([1, 0, 1, 0, 0, 0], 3, max_delay=1), [1, 0, 1])
+
 class TestResample(unittest.TestCase):
   def setUp(self):
     xs = np.arange(1000).reshape(-1, 2)
