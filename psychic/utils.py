@@ -96,22 +96,23 @@ def resample_markers(markers, newlen, max_delay=0):
   Resample a marker stream without losing markers. max_delay specifies how
   many frames the markers can be delayed in *target frames*. 
   '''
-  ys = np.zeros(newlen)
   factor = float(newlen)/len(markers)
   e, ei = markers_to_events(markers)
+  ei = (ei * factor).astype(int)
+  old_ei = ei.copy()
+  
+  for i in range(1, len(ei)):
+    if e[i] == e[i-1]:
+      ei[i] = max(ei[i], ei[i-1] + 2)
+    else:
+      ei[i] = max(ei[i], ei[i-1] + 1)
+      
   if len(ei) > 0:
-    ei_start = (ei * factor).astype(int)
-    ei = ei_start.copy()
-
-    while True:
-      offending = np.hstack([-1, np.diff(ei)]) == 0
-      if (offending == False).all():
-        break
-      ei[offending] += 1
-      assert max(ei - ei_start) <= max_delay, 'Markers are delayed too much'
-    assert min(np.diff(ei)) > 0, 'Markers are overlapping after resampling'
+    assert np.max(np.abs(ei - old_ei)) <= max_delay, \
+      'Markers are delayed to much'
     assert max(ei) < newlen, 'Delayed markers out of bounds'
-    ys[ei] = e
+  ys = np.zeros(newlen)
+  ys[ei] = e
   return ys
 
 def resample_rec(d, factor, max_marker_delay=0):
