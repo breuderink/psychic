@@ -6,3 +6,4 @@ from testfiltering import *
 from testcsp import *
 from testwhitening import *
 from testtimefreq import *
+from testmarkers import *
