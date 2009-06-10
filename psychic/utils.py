@@ -84,7 +84,7 @@ def bdf_dataset(fname):
   ghosts = biosemi_find_ghost_markers(d.ys.flatten())
   if len(ghosts) > 0:
     logging.getLogger('Psychic.bdf_dataset').warning(
-      'Found ghost markers: %s' % str(zip(d.ys.flatten()[ghost], ghost)))
+      'Found ghost markers: %s' % str(zip(d.ys.flatten()[ghosts], ghosts)))
   return d
 
 def resample_rec(d, factor, max_marker_delay=0):
