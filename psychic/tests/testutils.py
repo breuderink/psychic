@@ -180,8 +180,7 @@ class TestGhostMarkers(unittest.TestCase):
     gm = utils.biosemi_find_ghost_markers
     np.testing.assert_equal(
       gm([1, 1, 0, 2, 2, 2|4, 4, 0, 0, 2, 2|5, 5, 0]), [5, 10])
-    np.testing.assert_equal(gm([1, 1|4, 1|4, 4]), [1])
-    np.testing.assert_equal(gm([1, 1|4, 1|4, 4]), [1])
+    np.testing.assert_equal(gm([1, 1|4, 4]), [1])
     np.testing.assert_equal(gm([1, 0, 1|4, 0, 4]), [])
     np.testing.assert_equal(gm([1, 0, 1|4, 4]), [])
     np.testing.assert_equal(gm([1, 1|4, 0, 4]), [])
@@ -189,6 +188,10 @@ class TestGhostMarkers(unittest.TestCase):
 
     # cannot be detected, but that does not matter:
     np.testing.assert_equal(gm([1, 1|3, 3]), [])
+
+  def test_ghost_too_long(self):
+    gm = utils.biosemi_find_ghost_markers
+    np.testing.assert_equal(gm([1, 1|4, 1|4, 4]), [])
 
 class TestResample(unittest.TestCase):
   def setUp(self):

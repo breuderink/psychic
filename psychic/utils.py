@@ -81,16 +81,19 @@ def biosemi_find_ghost_markers(ys):
   ys = np.asarray(ys)
   e, ei = markers_to_events(ys)
 
-  # First, find markers that are the or of their neighbours
+  # First, find markers that are the binary OR of their neighbours
   pre_ghost_post = np.array([e[:-2], e[1:-1], e[2:]]).T
   or_matches = np.hstack([False, pre_ghost_post[:, 0] | pre_ghost_post[:,-1] \
     == pre_ghost_post[:, 1], False])
 
   # Now check which markers are not separated with a 0
-  non_sep_matches = np.hstack([False, 
-    np.logical_and(ys[ei[1:-1] - 1] != 0, ys[ei[2:] - 1] != 0), 
-    False])
-  ghosts = np.logical_and(or_matches, non_sep_matches)
+  non_sep_matches = np.hstack(
+    [False, (ys[ei[1:-1] - 1] != 0) & (ys[ei[2:] - 1] != 0), False])
+
+  # Finally find markers that are one frame long
+  one_frame = np.hstack([np.diff(ei) == 1, False])
+
+  ghosts = or_matches & non_sep_matches & one_frame
   return ei[ghosts]
 
 def bdf_dataset(fname):
@@ -216,7 +219,7 @@ def find_segments(events, event_indices, start_mark, end_mark):
   '''Helper to find matching start/end markers in an event array'''
   events, event_indices = np.asarray(events), np.asarray(event_indices)
   assert events.size == event_indices.size
-  mask = np.logical_or(events==start_mark, events==end_mark)
+  mask = (events==start_mark) | (events==end_mark)
   sevents, sevent_ids = events[mask], event_indices[mask]
   stack, result = [], []
   for si in range(sevent_ids.size):
