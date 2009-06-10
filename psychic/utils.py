@@ -83,7 +83,7 @@ def bdf_dataset(fname):
     ids=ids, feat_lab=feat_lab, cl_lab=['status'])
   ghosts = biosemi_find_ghost_markers(d.ys.flatten())
   if len(ghosts) > 0:
-    log.getLogger('Psychic.bdf_dataset').warning(
+    loggging.getLogger('Psychic.bdf_dataset').warning(
       'Found ghost markers: %s' % str(zip(d.ys.flatten()[ghost], ghost)))
   return d
 
