@@ -11,7 +11,7 @@ def markers_to_events(marker_array):
   Returns (events, indices).
   '''
   markers = np.asarray(marker_array, int)
-  change_ids = np.nonzero(np.concatenate([[1], np.diff(markers)]))[0]
+  change_ids = np.flatnonzero(np.concatenate([[1], np.diff(markers)]))
   events = markers[change_ids]
   return (events[np.nonzero(events)], change_ids[np.nonzero(events)])
 
@@ -69,6 +69,29 @@ def popcorn(f, axis, array, *args):
   result = result.reshape(final_shape)
   # result.shape = (i, y1, y2, y3, k, l)
   return result
+
+def biosemi_find_ghost_markers(ys):
+  '''
+  Biosemi seems to decimate the status channel by taking the max of each
+  window. When two makers fall in the same frame after decimation, a ghost
+  marker appears, with the value of the bitwise or of the other markers.
+  This function removes ghost markers using a heuristic. 
+  THIS FUNCTION IS DANGEROUS!
+  '''
+  ys = np.asarray(ys)
+  e, ei = markers_to_events(ys)
+
+  # First, find markers that are the or of their neighbours
+  pre_ghost_post = np.array([e[:-2], e[1:-1], e[2:]]).T
+  or_matches = np.hstack([False, pre_ghost_post[:, 0] | pre_ghost_post[:,-1] \
+    == pre_ghost_post[:, 1], False])
+
+  # Now check which markers are not separated with a 0
+  non_sep_matches = np.hstack([False, 
+    np.logical_and(ys[ei[1:-1] - 1] != 0, ys[ei[2:] - 1] != 0), 
+    False])
+  ghosts = np.logical_and(or_matches, non_sep_matches)
+  return ei[ghosts]
 
 def bdf_dataset(fname):
   STATUS = 'Status'

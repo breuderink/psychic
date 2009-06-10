@@ -175,6 +175,21 @@ class TestResampleStatus(unittest.TestCase):
     np.testing.assert_equal(
       utils.resample_markers([1, 0, 1, 0, 0, 0], 3, max_delay=1), [1, 0, 1])
 
+class TestGhostMarkers(unittest.TestCase):
+  def test_detection(self):
+    gm = utils.biosemi_find_ghost_markers
+    np.testing.assert_equal(
+      gm([1, 1, 0, 2, 2, 2|4, 4, 0, 0, 2, 2|5, 5, 0]), [5, 10])
+    np.testing.assert_equal(gm([1, 1|4, 1|4, 4]), [1])
+    np.testing.assert_equal(gm([1, 1|4, 1|4, 4]), [1])
+    np.testing.assert_equal(gm([1, 0, 1|4, 0, 4]), [])
+    np.testing.assert_equal(gm([1, 0, 1|4, 4]), [])
+    np.testing.assert_equal(gm([1, 1|4, 0, 4]), [])
+    np.testing.assert_equal(gm([1, 3, 4]), [])
+
+    # cannot be detected, but that does not matter:
+    np.testing.assert_equal(gm([1, 1|3, 3]), [])
+
 class TestResample(unittest.TestCase):
   def setUp(self):
     xs = np.arange(1000).reshape(-1, 2)
