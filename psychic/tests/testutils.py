@@ -205,7 +205,8 @@ class TestSlice(unittest.TestCase):
     ys = np.zeros((20, 1))
     ys[[0, 2, 16], 0] = 1
     ys[[4, 12, 19], 0] = 2
-    self.d = DataSet(xs, ys)
+    ids = np.hstack([np.arange(20).reshape(-1, 1), np.ones((20, 1))])
+    self.d = DataSet(xs=xs, ys=ys, ids=ids)
 
   def test_slice(self):
     logging.getLogger('psychic.utils.slice').setLevel(logging.ERROR)
@@ -221,7 +222,7 @@ class TestSlice(unittest.TestCase):
 
     np.testing.assert_equal(d2.ys, helpers.to_one_of_n([0, 1, 1, 0]))
     
-    np.testing.assert_equal(d2.ids.flatten(), [0, 2, 10, 14])
+    np.testing.assert_equal(d2.ids, [[0, 1], [2, 1], [10, 1], [14, 1]])
 
     self.assertEqual(d2.cl_lab, ['b', 'a'])
     self.assertEqual(d2.feat_lab, None)
