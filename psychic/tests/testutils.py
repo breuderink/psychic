@@ -191,3 +191,15 @@ class TestCutSegments(unittest.TestCase):
     np.testing.assert_equal(ds[0].ids.flatten(), [3, 4, 5])
     np.testing.assert_equal(ds[1].ids.flatten(), [9, 10])
     np.testing.assert_equal(ds[2].ids.flatten(), [12, 13, 14])
+
+class TestGetSamplerate(unittest.TestCase):
+  def test_get_samplerate(self):
+    d = DataSet(xs=np.random.rand(100, 10), ys=np.zeros((100, 1)))
+    for f in [2, 10, 2048]:
+      df = DataSet(ids = np.arange(100).reshape(-1, 1)/float(f), default=d)
+      self.assertEqual(utils.get_samplerate(df), f)
+
+  def test_noise(self):
+    d = DataSet(xs=np.random.rand(100, 10), ys=np.zeros((100, 1)), 
+      ids=np.arange(100).reshape(-1, 1) / 10. + 0.01 * np.random.rand(100, 1))
+    self.assertEqual(utils.get_samplerate(d), 10)
