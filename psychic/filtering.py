@@ -25,8 +25,7 @@ def filter_rec((b, a), d):
   '''
   xs = np.hstack([signal.filtfilt(b, a, d.xs[:, i]).reshape(-1, 1) 
     for i in range(d.nfeatures)])
-  return golem.DataSet(xs=xs, default=d)
-
+  return DataSet(xs=xs, default=d)
 
 def resample_rec(d, factor, max_marker_delay=0):
   '''Resample a recording to length d.ninstances * factor'''

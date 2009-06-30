@@ -193,6 +193,9 @@ class TestCutSegments(unittest.TestCase):
     np.testing.assert_equal(ds[2].ids.flatten(), [12, 13, 14])
 
 class TestGetSamplerate(unittest.TestCase):
+  def setUp(self):
+    np.random.seed(0)
+
   def test_get_samplerate(self):
     d = DataSet(xs=np.random.rand(100, 10), ys=np.zeros((100, 1)))
     for f in [2, 10, 2048]:

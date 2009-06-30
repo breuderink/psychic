@@ -109,3 +109,27 @@ class TestDecimate(unittest.TestCase):
     # test overlapping markers
     self.assertRaises(AssertionError, decimate_rec, d, 4)
 
+class TestFilter(unittest.TestCase):
+  def setUp(self):
+    np.random.seed(0)
+    self.d = DataSet(xs=np.random.rand(400, 4), ys=np.zeros((400, 1)))
+
+  def test_nop(self):
+    b, a = np.array([0, 1]), np.array([1])
+    self.assertEqual(filter_rec((b, a), self.d), self.d)
+
+  def test_lp(self):
+    b, a = signal.iirfilter(4, [.1], btype='low')
+    df = filter_rec((b, a), self.d)
+    spec = np.abs(np.fft.rfft(df.xs, axis=0))
+
+    # verify that there is more power in the lowest 10%
+    pass_p = np.mean(spec[:self.d.ninstances/10], axis=0)
+    stop_p = np.mean(spec[self.d.ninstances/10:], axis=0)
+    self.assert_(((pass_p/stop_p) > 20).all())
+
+  def test_hp(self):
+    b, a = signal.iirfilter(6, [.9], btype='high')
+    df = filter_rec((b, a), self.d)
+    # only test for zero mean
+    np.testing.assert_almost_equal(np.mean(df.xs, axis=0), np.zeros(4), 3)
