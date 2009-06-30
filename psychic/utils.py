@@ -4,8 +4,7 @@ from bdfreader import BDFReader
 from golem import DataSet, helpers
 from scipy import signal
 
-from markers import markers_to_events, biosemi_find_ghost_markers,\
-  resample_markers
+from markers import markers_to_events, biosemi_find_ghost_markers
 
 def sliding_window_indices(window_size, window_step, sig_len):
   '''Returns indices for a sliding window with shape [nwindows x window_size]'''
@@ -87,41 +86,9 @@ def bdf_dataset(fname):
       'Found ghost markers: %s' % str(zip(d.ys.flatten()[ghosts], ghosts)))
   return d
 
-def resample_rec(d, factor, max_marker_delay=0):
-  '''Resample a recording to length d.ninstances * factor'''
-  new_len = int(d.ninstances * factor)
-  ys = resample_markers(d.ys.flatten(), new_len, 
-    max_delay=max_marker_delay).reshape(-1, 1)
-
-  # calculate xs and ids
-  xs, ids = signal.resample(d.xs, new_len, t=d.ids)
-  xs = xs.astype(d.xs.dtype) # keep old dtype
-
-  # construct new DataSet
-  extra = d.extra.copy()
-  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
-
-def decimate_rec(d, factor, max_marker_delay=0):
-  '''Decimate a recording using an anti-aliasing filter.'''
-  assert isinstance(factor, int), 'Decimation factor should be an int'
-  ys = resample_markers(d.ys.flatten(), d.ninstances/factor,
-    max_delay=max_marker_delay).reshape(-1, 1)
-
-  # anti-aliasing filter
-  (b, a) = signal.iirfilter(8, .8 / factor, btype='lowpass', rp=0.05, 
-    ftype='cheby1')
-  xs = d.xs.copy()
-  for i in range(d.nfeatures):
-    xs[:,i] = signal.filtfilt(b, a, xs[:, i])
-
-  xs = np.ascontiguousarray(xs[::factor,:]).astype(d.xs.dtype)
-
-  # calc ids
-  ids = np.ascontiguousarray(d.ids[::factor,:]).astype(d.ids.dtype)
-
-  # construct new DataSet
-  extra = d.extra.copy()
-  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
+def get_samplerate(d):
+  '''Derive the sample rate from the timestamps d.ids[:, 0]'''
+  return int(1./np.median(np.diff(d.ids[:, 0])))
 
 def slice(d, marker_dict, offsets):
   '''
