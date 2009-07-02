@@ -1,7 +1,7 @@
 import unittest
 import os.path
 import numpy as np
-from psychic.bdfreader import *
+from psychic.bdfreader import BDFReader, le_to_int24, int24_to_le
 
 class TestConversion(unittest.TestCase):
   def setUp(self):

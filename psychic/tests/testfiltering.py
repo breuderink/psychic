@@ -4,14 +4,14 @@ import pylab
 from scipy import signal
 from golem import DataSet
 from ..plots import plot_filt_char, plot_timeseries
-from ..filtering import *
+from .. import filtering
 
 class TestFilters(unittest.TestCase):
   def setUp(self):
     self.Fs = 256.
 
   def test_fir_bandpass(self):
-    (b, a) = fir_bandpass(8, 30, 4, Fs=self.Fs)
+    (b, a) = filtering.fir_bandpass(8, 30, 4, Fs=self.Fs)
     bands = [(1, 4, False), (8, 28, True), (10, 12, True), (26, 30, True), 
       (34, 50, False)]
 
@@ -26,7 +26,7 @@ class TestFilters(unittest.TestCase):
         self.assert_(gain < 1e-2)
 
   def test_plot_filt_char(self):
-    (b, a) = fir_bandpass(50, 100, 4, Fs=self.Fs)
+    (b, a) = filtering.fir_bandpass(50, 100, 4, Fs=self.Fs)
     plot_filt_char(b, a, Fs=self.Fs)
     pylab.savefig('fir_bp50_100.eps')
     pylab.close()
@@ -41,7 +41,7 @@ class TestResample(unittest.TestCase):
 
   def test_resample(self):
     d = self.d
-    d2 = resample_rec(d, .5)
+    d2 = filtering.resample_rec(d, .5)
     self.assertEqual(d2.ninstances, d.ninstances / 2)
     self.assertEqual(d2.nfeatures, d.nfeatures)
     self.assertEqual(d2.feat_lab, d.feat_lab)
@@ -58,7 +58,7 @@ class TestResample(unittest.TestCase):
   def test_overlapping_markers(self):
     d = self.d
     # test overlapping markers
-    self.assertRaises(AssertionError, decimate_rec, d, 5)
+    self.assertRaises(AssertionError, filtering.decimate_rec, d, 5)
 
 
 class TestDecimate(unittest.TestCase):
@@ -79,7 +79,7 @@ class TestDecimate(unittest.TestCase):
     ys[::4] = 2
     d = DataSet(xs=xs, ys=ys)
 
-    d2 = decimate_rec(d, 2)
+    d2 = filtering.decimate_rec(d, 2)
     self.assertEqual(d2.ninstances, d.ninstances / 2)
     self.assertEqual(d2.nfeatures, d.nfeatures)
     self.assertEqual(d2.feat_lab, d.feat_lab)
@@ -95,7 +95,7 @@ class TestDecimate(unittest.TestCase):
 
   def test_decimate(self):
     d = self.d
-    d2 = decimate_rec(d, 2)
+    d2 = filtering.decimate_rec(d, 2)
     self.assertEqual(d2.ninstances, d.ninstances / 2)
     self.assertEqual(d2.nfeatures, d.nfeatures)
     self.assertEqual(d2.feat_lab, d.feat_lab)
@@ -107,7 +107,7 @@ class TestDecimate(unittest.TestCase):
   def test_overlapping_markers(self):
     d = self.d
     # test overlapping markers
-    self.assertRaises(AssertionError, decimate_rec, d, 4)
+    self.assertRaises(AssertionError, filtering.decimate_rec, d, 4)
 
 class TestFilter(unittest.TestCase):
   def setUp(self):
@@ -116,11 +116,11 @@ class TestFilter(unittest.TestCase):
 
   def test_nop(self):
     b, a = np.array([0, 1]), np.array([1])
-    self.assertEqual(filter_rec((b, a), self.d), self.d)
+    self.assertEqual(filtering.filter_rec((b, a), self.d), self.d)
 
   def test_lp(self):
     b, a = signal.iirfilter(4, [.1], btype='low')
-    df = filter_rec((b, a), self.d)
+    df = filtering.filter_rec((b, a), self.d)
     spec = np.abs(np.fft.rfft(df.xs, axis=0))
 
     # verify that there is more power in the lowest 10%
@@ -130,6 +130,6 @@ class TestFilter(unittest.TestCase):
 
   def test_hp(self):
     b, a = signal.iirfilter(6, [.9], btype='high')
-    df = filter_rec((b, a), self.d)
+    df = filtering.filter_rec((b, a), self.d)
     # only test for zero mean
     np.testing.assert_almost_equal(np.mean(df.xs, axis=0), np.zeros(4), 3)
