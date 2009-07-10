@@ -16,11 +16,13 @@ def biosemi_find_ghost_markers(ys):
   Biosemi seems to decimate the status channel by taking the max of each
   window. When two makers fall in the same frame after decimation, a ghost
   marker appears, with the value of the bitwise or of the other markers.
-  This function removes ghost markers using a heuristic. 
+  This function finds ghost markers using a heuristic. 
   THIS FUNCTION IS DANGEROUS!
   '''
   ys = np.asarray(ys)
   e, ei = markers_to_events(ys)
+  if len(ei) < 3:
+    return np.zeros(0)
 
   # First, find markers that are the binary OR of their neighbours
   pre_ghost_post = np.array([e[:-2], e[1:-1], e[2:]]).T
