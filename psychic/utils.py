@@ -164,4 +164,4 @@ def detrend_rec(d):
   Linearly detrend a recording, using scipy.signal.detrend().
   '''
   xs=np.vstack([signal.detrend(d.xs[:, fi]) for fi in range(d.nfeatures)]).T
-  return golem.DataSet(xs=xs, default=d)
+  return DataSet(xs=xs, default=d)

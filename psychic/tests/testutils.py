@@ -206,3 +206,25 @@ class TestGetSamplerate(unittest.TestCase):
     d = DataSet(xs=np.random.rand(100, 10), ys=np.zeros((100, 1)), 
       ids=np.arange(100).reshape(-1, 1) / 10. + 0.01 * np.random.rand(100, 1))
     self.assertEqual(utils.get_samplerate(d), 10)
+
+class TestDetrend(unittest.TestCase):
+  def setUp(self):
+    np.random.seed(0)
+
+  def test_detrend(self):
+    d = DataSet(xs=np.random.randn(400, 10), ys=np.zeros((400, 1)))
+    d_trend = DataSet(xs=d.xs + np.arange(400).reshape(-1, 1), default=d)
+    d2 = utils.detrend_rec(d_trend)
+    
+    self.assertEqual(d.ninstances, d2.ninstances)
+    self.assertEqual(d.nfeatures, d2.nfeatures)
+
+    # test lack of trend
+    np.testing.assert_almost_equal(np.mean(np.diff(d2.xs, axis=0), axis=0), 0, 
+      2)
+
+    # test zero mean
+    np.testing.assert_almost_equal(np.mean(d2.xs, axis=0), 0, 2)
+
+    # test reconstruction
+    np.testing.assert_almost_equal(d.xs, d2.xs, 0)
