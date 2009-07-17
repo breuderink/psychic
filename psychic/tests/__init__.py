@@ -7,3 +7,4 @@ from testcsp import *
 from testwhitening import *
 from testtimefreq import *
 from testmarkers import *
+from testregfilter import *
