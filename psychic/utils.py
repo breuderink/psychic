@@ -158,3 +158,10 @@ def cut_segments(d, marker_tuples, offsets=[0, 0]):
     segments.extend(find_segments(e, ei, sm, em))
   segments.sort()
   return [d[s + start_off:e + end_off] for (s, e) in segments]
+
+def detrend_rec(d):
+  ''' 
+  Linearly detrend a recording, using scipy.signal.detrend().
+  '''
+  xs=np.vstack([signal.detrend(d.xs[:, fi]) for fi in range(d.nfeatures)]).T
+  return golem.DataSet(xs=xs, default=d)
