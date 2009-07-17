@@ -22,7 +22,7 @@ class TestRegFilter(unittest.TestCase):
   def test_removal(self):
     d = DataSet(xs=np.hstack([self.signal, self.eog]), 
       ys=np.zeros((TestRegFilter.NINSTANCES, 1)))
-    n = RegFilter(np.arange(12) >= self.eeg.shape[1])
+    n = RegFilter(range(8, 12))
     n.train(d)
     d2 = n.test(d)
 
@@ -42,12 +42,13 @@ class TestRegFilter(unittest.TestCase):
     d = DataSet(xs=np.hstack([self.signal, self.eog]), 
       ys=np.zeros((TestRegFilter.NINSTANCES, 1)),
       feat_lab=['f%d' % fi for fi in range(12)])
-    mask = np.arange(12) % 2
-    n = RegFilter(mask)
+
+    noise_channels = [i for i in range(d.nfeatures) if not i % 2]
+    n = RegFilter(noise_channels)
     n.train(d)
     d2 = n.test(d)
     self.assertEqual(d2.feat_lab, 
-      ['f%d' % fi for fi in range(12) if not fi % 2])
+      ['f%d' % fi for fi in range(12) if fi % 2])
 
     self.assertEqual(d2.nfeatures, 6)
     self.assertEqual(d2.ninstances, d.ninstances)

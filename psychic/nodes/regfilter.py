@@ -7,12 +7,12 @@ class RegFilter:
   remove_mask is a boolean array containing True if the channel contains EOG.
   Assumes detrended or high-passed data (mean = 0).
   '''
-  def __init__(self, remove_mask):
-    self.remove_mask = np.asarray(remove_mask, bool)
+  def __init__(self, noise_channels):
+    self.noise_channels = noise_channels
 
   def train(self, d):
     '''Train the regression filter using signal and noise channels'''
-    mask = self.remove_mask
+    mask = np.array([i in self.noise_channels for i in range(d.nfeatures)])
     self.cov = np.cov(d.xs, rowvar=False)
     Cnn = self.cov[mask][:, mask]
     Cny = self.cov[mask][:, ~mask]
@@ -20,7 +20,7 @@ class RegFilter:
 
   def test(self, d):
     '''Apply the regression filter, and remove the noise channels'''
-    mask = self.remove_mask
+    mask = np.array([i in self.noise_channels for i in range(d.nfeatures)])
     xs = d.xs[:, ~mask] - np.dot(d.xs[:, mask], self.b)
     if d.feat_lab != None:
       feat_lab = [d.feat_lab[fi] for fi in range(d.nfeatures) if not mask[fi]]
