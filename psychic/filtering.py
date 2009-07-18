@@ -18,10 +18,11 @@ def fir_bandpass(start, end, transition, Fs=1.):
   gain = [0, 1, 0]
   return (signal.remez(M, bands, gain, type='bandpass', Hz=Fs), [1])
 
-def filter_rec((b, a), d):
+def filtfilt_rec((b, a), d):
   '''
   Apply a filter defined by the filter coefficients (b, a) to a 
-  DataSet. d.xs is interpreted as [frames x channels].
+  DataSet, *forwards and backwards*. 
+  d.xs is interpreted as [frames x channels].
   '''
   xs = np.hstack([signal.filtfilt(b, a, d.xs[:, i]).reshape(-1, 1) 
     for i in range(d.nfeatures)])
