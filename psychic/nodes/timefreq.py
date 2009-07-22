@@ -6,9 +6,12 @@ from ..utils import popcorn, spectrogram, sliding_window
 
 class TFC:
   def __init__(self, nfft, win_step):
+    def tfc(x):
+      return np.dstack([spectrogram(x[:, ci], nfft, win_step) 
+        for ci in range(x.shape[1])])
+
     self.nfft, self.win_step = nfft, win_step
-    self.n = FeatMap(lambda x: np.dstack([spectrogram(x[:, ci], nfft, win_step) 
-      for ci in range(x.shape[1])]))
+    self.n = FeatMap(tfc)
 
   def train(self, d):
     pass
