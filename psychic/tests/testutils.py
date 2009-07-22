@@ -152,9 +152,6 @@ class TestSlice(unittest.TestCase):
     self.assertEqual(d2.feat_nd_lab, 
       [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
 
-    self.assertEqual(d2.feat_nd_lab[0], 
-      ['%.2f' % i for i in d2.extra['event_time']])
-
 class TestFindSegments(unittest.TestCase):
   def test_naive(self):
     self.assertEqual(utils.find_segments(

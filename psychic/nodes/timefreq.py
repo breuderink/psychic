@@ -26,11 +26,11 @@ class TFC:
     if d.feat_nd_lab != None:
       old_time = np.asarray([float(i) for i in d.feat_nd_lab[0]])
       time = np.mean(sliding_window(old_time, self.nfft, self.win_step), axis=1)
-      time = ['%.2f' % i for i in time]
+      time = ['%.1f' % i for i in time]
       dt = np.mean(np.diff(old_time))
       dt = (np.max(old_time) - np.min(old_time)) / old_time.size
       freqs = np.fft.fftfreq(self.nfft, dt) 
-      freqs = ['%.2f' % abs(i) for i in freqs[:self.nfft/2 + 1]]
+      freqs = ['%d' % abs(i) for i in freqs[:self.nfft/2 + 1]]
       channels = d.feat_nd_lab[1]
 
       feat_nd_lab = [time, freqs, channels]
