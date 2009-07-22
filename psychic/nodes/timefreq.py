@@ -1,11 +1,14 @@
 import logging
 import numpy as np
 from golem import DataSet
+from golem.nodes import FeatMap
 from ..utils import popcorn, spectrogram, sliding_window
 
 class TFC:
   def __init__(self, nfft, win_step):
     self.nfft, self.win_step = nfft, win_step
+    self.n = FeatMap(lambda x: np.dstack([spectrogram(x[:, ci], nfft, win_step) 
+      for ci in range(x.shape[1])]))
 
   def train(self, d):
     pass
@@ -15,12 +18,7 @@ class TFC:
     if d.feat_shape != None:
       assert d.feat_dim_lab[0] == 'time'
 
-    def tf(signal):
-      return spectrogram(signal, self.nfft, self.win_step)
-
-    itfc = popcorn(tf, 1, d.nd_xs)
-    xs = itfc.reshape(itfc.shape[0], -1)
-    feat_shape = itfc.shape[1:]
+    tfc = self.n.test(d)
     feat_dim_lab = ['time', 'frequency', d.feat_dim_lab[1]]
 
     if d.feat_nd_lab != None:
@@ -36,5 +34,5 @@ class TFC:
       feat_nd_lab = [time, freqs, channels]
     else:
       feat_nd_lab = None
-    return DataSet(xs=xs, feat_shape=feat_shape, feat_dim_lab=feat_dim_lab, 
-      feat_nd_lab=feat_nd_lab, default=d)
+    return DataSet(feat_dim_lab=feat_dim_lab, feat_nd_lab=feat_nd_lab, 
+      default=tfc)
