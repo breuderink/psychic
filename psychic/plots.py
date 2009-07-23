@@ -4,11 +4,11 @@ import scalpplot
 from scalpplot import plot_scalp
 from scipy import signal
 
-def plot_timeseries(frames, spacing=None):
+def plot_timeseries(frames, spacing=None, color='k', linestyle='-'):
   if spacing == None:
     spacing = np.max(np.std(frames, axis=0)) * 2
   pylab.plot(frames - np.mean(frames, axis=0) + 
-    np.arange(frames.shape[1]) * spacing, color='k')
+    np.arange(frames.shape[1]) * spacing, color=color, ls=linestyle)
 
 def plot_filt_char(b, a, Fs=1):
   '''Plot frequency, phase and impulse response of a filter (b, a)'''
