@@ -8,7 +8,8 @@ class TestPlots(unittest.TestCase):
     pylab.figure()
     eeg = np.sin(2 * np.pi * 
       (np.linspace(0, 1, 100).reshape(-1, 1) * np.arange(6)))
-    plots.plot_timeseries(eeg, spacing=2, color='r', linestyle='--') 
+    plots.plot_timeseries(eeg, time=np.linspace(0, 1, 100), offset=2, 
+      color='b', linestyle='--') 
     pylab.savefig('timeseries.eps')
 
   def test_scalpplot(self):
