@@ -8,3 +8,4 @@ from testwhitening import *
 from testtimefreq import *
 from testmarkers import *
 from testregfilter import *
+from testbitrate import *
