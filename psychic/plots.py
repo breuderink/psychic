@@ -7,9 +7,9 @@ from scipy import signal
 def plot_timeseries(frames, time=None, offset=None, color='k', linestyle='-'):
   frames = np.asarray(frames)
   if offset == None:
-    offset = np.max(np.std(frames, axis=0)) * 2
+    offset = np.max(np.std(frames, axis=0)) * 3
   if time == None:
-    time = np.arange(frames.shape[1])
+    time = np.arange(frames.shape[0])
   pylab.plot(time, frames - np.mean(frames, axis=0) + 
     np.arange(frames.shape[1]) * offset, color=color, ls=linestyle)
 

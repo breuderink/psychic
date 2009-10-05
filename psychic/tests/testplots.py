@@ -6,11 +6,16 @@ from .. import plots
 class TestPlots(unittest.TestCase):
   def test_timeseries(self):
     pylab.figure()
+    plots.plot_timeseries(np.random.randn(1000, 10)) 
+    pylab.savefig('timeseries.eps')
+
+  def test_timeseries2(self):
+    pylab.figure()
     eeg = np.sin(2 * np.pi * 
       (np.linspace(0, 1, 100).reshape(-1, 1) * np.arange(6)))
     plots.plot_timeseries(eeg, time=np.linspace(0, 1, 100), offset=2, 
       color='b', linestyle='--') 
-    pylab.savefig('timeseries.eps')
+    pylab.savefig('timeseries2.eps')
 
   def test_scalpplot(self):
     pylab.figure()
