@@ -34,32 +34,27 @@ def stft(signal, nfft, stepsize):
   return np.fft.rfft(wins, axis=1)
 
 def spectrogram(signal, nfft, stepsize):
-  '''Calculate a spectrogram using the STFT. Returns [frames x frequencies]'''
-  # abs is the *magnitude* of a complex number
-  return np.abs(stft(signal, nfft, stepsize))
+  '''
+  Calculate a spectrogram using the STFT. 
+  Returns [windows x frequencies], in units related to power.
+  Equivalent to power spectral density.
+  '''
+  spec = stft(signal, nfft, stepsize)
 
-def popcorn(f, axis, array, *args):
-  # array.shape ~ (i, j, k, l), axis = 1
-  array = array.swapaxes(axis, -1)
-  x_shape = array.shape[:-1]
-  # x_shape~ (i, l, k)
+  # convert to power. The abs() is the magnitude of a complex number
+  spec = np.abs(spec) ** 2 / nfft
 
-  array = array.reshape(-1, array.shape[-1]) 
-  # array.shape ~ (x, j)
+  # compensate for missing negative frequencies
+  spec[:, 1:-1] *= 2 
 
-  result = np.asarray([f(a, *args) for a in array])
-  y_shape = result.shape[1:]
-  # y_shape ~ (y1, y2, y3)
+  # correct for window
+  spec /= np.mean(np.abs(np.hanning(nfft)) ** 2)
 
-  result = result.reshape(x_shape + (-1,)) 
-  # result.shape ~ (i, l, k, y)
-  result = result.swapaxes(axis, -1)
-  # result.shape ~ (i, y, k, l)
-
-  final_shape = result.shape[:axis] + y_shape + result.shape[axis+1:]
-  result = result.reshape(final_shape)
-  # result.shape = (i, y1, y2, y3, k, l)
-  return result
+  # compenstate for overlapping windows
+  nwins = spec.shape[0]
+  overlap = stepsize / float(nfft)
+  spec *= (1 + (nwins - 1) * overlap) / nwins
+  return spec
 
 def bdf_dataset(fname):
   STATUS = 'Status'

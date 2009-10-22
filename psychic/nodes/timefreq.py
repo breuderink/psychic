@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from golem import DataSet
 from golem.nodes import FeatMap
-from ..utils import popcorn, spectrogram, sliding_window
+from ..utils import spectrogram, sliding_window
 
 class TFC:
   def __init__(self, nfft, win_step):
