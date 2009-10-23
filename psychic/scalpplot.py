@@ -1,4 +1,5 @@
-import pylab
+import matplotlib.pyplot as plt
+from pylab import griddata
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
 import numpy as np
@@ -22,7 +23,7 @@ BIOSEMI_32_LOCS = {
   'T7': (-1.0, 0.0, -0.029), 'T8': (1.0, 0.0, -0.0299)}
 
 def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True, 
-  cmap=pylab.cm.jet, clim=[None, None]):
+  cmap=plt.cm.jet, clim=[None, None]):
 
   # add densities
   curr_sens = dict([(lab, sensor_locs[lab]) for lab in sensors]) 
@@ -30,10 +31,10 @@ def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True,
 
   # setup plot
   MARGIN = 1.2
-  pylab.xlim(-MARGIN, MARGIN)
-  pylab.ylim(-MARGIN, MARGIN)
-  pylab.box(False)
-  ax = pylab.gca()
+  plt.xlim(-MARGIN, MARGIN)
+  plt.ylim(-MARGIN, MARGIN)
+  plt.box(False)
+  ax = plt.gca()
   ax.set_aspect(1.2)
   ax.yaxis.set_visible(False)
   ax.xaxis.set_visible(False)
@@ -57,8 +58,8 @@ def add_head():
   rear = [(c, (-px, py)) for (c, (px, py)) in lear]
 
   # plot outline
-  ax = pylab.gca()
-  ax.add_artist(pylab.Circle((0, 0), 1, fill=False, linewidth=LINEWIDHT))
+  ax = plt.gca()
+  ax.add_artist(plt.Circle((0, 0), 1, fill=False, linewidth=LINEWIDHT))
 
   # add nose and ears
   for p in [nose, lear, rear]:
@@ -71,12 +72,12 @@ def add_sensors(sensor_dict):
   locs = []
   for (label, coord) in sensor_dict.items():
     (x, y, z) = coord
-    pylab.text(x, y + .03, label, fontsize=8, ha='center')
+    plt.text(x, y + .03, label, fontsize=8, ha='center')
     locs.append((x, y))
   locs = np.asarray(locs)
-  pylab.plot(locs[:, 0], locs[:, 1], 'ko')
+  plt.plot(locs[:, 0], locs[:, 1], 'ko')
 
-def add_density(dens, labels, sensor_dict, cmap=pylab.cm.jet, 
+def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, 
   clim=[None, None]):
   '''
   This function uses pylab.griddata, which is known to fail in pathetic cases.
@@ -87,9 +88,9 @@ def add_density(dens, labels, sensor_dict, cmap=pylab.cm.jet,
   RESOLUTION = 50
   xg = np.linspace(-1, 1, RESOLUTION)
   yg = np.linspace(-1, 1, RESOLUTION)
-  zg = pylab.griddata(xs, ys, dens, xg, yg)
+  zg = griddata(xs, ys, dens, xg, yg)
   extent = [min(xg), max(xg), min(yg), max(yg)]
-  pylab.contour(xg, yg, zg, colors='k', extent=extent)
+  plt.contour(xg, yg, zg, colors='k', extent=extent)
   vmin, vmax = clim
-  pylab.imshow(zg, origin='lower', interpolation='nearest', 
+  plt.imshow(zg, origin='lower', interpolation='nearest', 
     extent=extent, vmin=vmin, vmax=vmax, cmap=cmap)

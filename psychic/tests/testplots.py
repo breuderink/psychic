@@ -1,24 +1,25 @@
 import unittest
-import pylab
+import matplotlib.pyplot as plt
 import numpy as np
 from .. import plots
+from ..scalpplot import BIOSEMI_32_LOCS
 
 class TestPlots(unittest.TestCase):
   def test_timeseries(self):
-    pylab.figure()
+    plt.clf()
     plots.plot_timeseries(np.random.randn(1000, 10)) 
-    pylab.savefig('timeseries.eps')
+    plt.savefig('timeseries.eps')
 
   def test_timeseries2(self):
-    pylab.figure()
+    plt.clf()
     eeg = np.sin(2 * np.pi * 
       (np.linspace(0, 1, 100).reshape(-1, 1) * np.arange(6)))
     plots.plot_timeseries(eeg, time=np.linspace(0, 1, 100), offset=2, 
       color='b', linestyle='--') 
-    pylab.savefig('timeseries2.eps')
+    plt.savefig('timeseries2.eps')
 
   def test_scalpplot(self):
-    pylab.figure()
+    plt.clf()
     sensors = plots.scalpplot.BIOSEMI_32_LOCS.keys()
     activity = np.random.randn(len(sensors)) * 0.1
     activity[sensors.index('Fp1')] = 1
@@ -26,4 +27,10 @@ class TestPlots(unittest.TestCase):
     activity[sensors.index('C4')] = 1
     plots.plot_scalp(activity, sensors, plots.scalpplot.BIOSEMI_32_LOCS)
       
-    pylab.savefig('topo.eps')
+    plt.savefig('topo.eps')
+
+  def test_scalpgrid(self):
+    plt.clf()
+    sensors = BIOSEMI_32_LOCS.keys()
+    plots.plot_scalpgrid(np.eye(32)[:9], sensors, titles=sensors)
+    plt.savefig('scalpgrid.eps')
