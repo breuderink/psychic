@@ -45,8 +45,6 @@ def resample_rec(d, factor, max_marker_delay=0):
 def decimate_rec(d, factor, max_marker_delay=0):
   '''Decimate a recording using an anti-aliasing filter.'''
   assert isinstance(factor, int), 'Decimation factor should be an int'
-  ys = resample_markers(d.ys.flatten(), d.ninstances/factor,
-    max_delay=max_marker_delay).reshape(-1, 1)
 
   # anti-aliasing filter
   (b, a) = signal.iirfilter(8, .8 / factor, btype='lowpass', rp=0.05, 
@@ -56,6 +54,9 @@ def decimate_rec(d, factor, max_marker_delay=0):
     xs[:,i] = signal.filtfilt(b, a, xs[:, i])
 
   xs = np.ascontiguousarray(xs[::factor,:]).astype(d.xs.dtype)
+
+  ys = resample_markers(d.ys.flatten(), xs.shape[0],
+    max_delay=max_marker_delay).reshape(-1, 1)
 
   # calc ids
   ids = np.ascontiguousarray(d.ids[::factor,:]).astype(d.ids.dtype)
