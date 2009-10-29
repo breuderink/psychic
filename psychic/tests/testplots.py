@@ -32,5 +32,6 @@ class TestPlots(unittest.TestCase):
   def test_scalpgrid(self):
     plt.clf()
     sensors = BIOSEMI_32_LOCS.keys()
-    plots.plot_scalpgrid(np.eye(32)[:9], sensors, titles=sensors)
+    plots.plot_scalpgrid(np.eye(32)[:20], sensors, titles=sensors[:20],
+      width=6, cmap=plt.cm.RdBu_r, clim=[-1, 1])
     plt.savefig('scalpgrid.eps')

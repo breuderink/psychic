@@ -22,11 +22,13 @@ BIOSEMI_32_LOCS = {
   'PO4': (0.409, -0.87, 0.280), 'Pz': (0.0, -0.719, 0.689),
   'T7': (-1.0, 0.0, -0.029), 'T8': (1.0, 0.0, -0.0299)}
 
-def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True, 
-  cmap=plt.cm.jet, clim=[None, None]):
+def plot_scalp(densities, sensors, sensor_locs, plot_sensors=False, 
+  cmap=plt.cm.jet, clim=None):
 
   # add densities
   curr_sens = dict([(lab, sensor_locs[lab]) for lab in sensors]) 
+  if clim == None:
+    clim = [np.min(densities), np.max(densities)]
   add_density(densities, sensors, curr_sens, cmap=cmap, clim=clim)
 
   # setup plot
@@ -77,8 +79,7 @@ def add_sensors(sensor_dict):
   locs = np.asarray(locs)
   plt.plot(locs[:, 0], locs[:, 1], 'ko')
 
-def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, 
-  clim=[None, None]):
+def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   '''
   This function uses pylab.griddata, which is known to fail in pathetic cases.
   If it does, please consult the documentation for pylab.griddata.
@@ -90,7 +91,8 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet,
   yg = np.linspace(-1, 1, RESOLUTION)
   zg = griddata(xs, ys, dens, xg, yg)
   extent = [min(xg), max(xg), min(yg), max(yg)]
-  plt.contour(xg, yg, zg, colors='k', extent=extent)
+  v = np.linspace(clim[0], clim[1], 9)
+  plt.contour(xg, yg, zg, v, colors='k', extent=extent)
   vmin, vmax = clim
   plt.imshow(zg, origin='lower', interpolation='nearest', 
     extent=extent, vmin=vmin, vmax=vmax, cmap=cmap)
