@@ -57,7 +57,7 @@ def resample_markers(markers, newlen, max_delay=0):
       
   if len(ei) > 0:
     assert np.max(np.abs(ei - old_ei)) <= max_delay, \
-      'Markers are delayed to much'
+      'Markers are delayed too much'
     assert max(ei) < newlen, 'Delayed markers out of bounds'
   ys = np.zeros(newlen)
   ys[ei] = e
