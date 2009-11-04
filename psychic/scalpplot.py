@@ -22,7 +22,7 @@ BIOSEMI_32_LOCS = {
   'PO4': (0.409, -0.87, 0.280), 'Pz': (0.0, -0.719, 0.689),
   'T7': (-1.0, 0.0, -0.029), 'T8': (1.0, 0.0, -0.0299)}
 
-def plot_scalp(densities, sensors, sensor_locs, plot_sensors=False, 
+def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True, 
   cmap=plt.cm.jet, clim=None):
 
   # add densities
