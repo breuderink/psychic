@@ -95,7 +95,7 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   xg = np.linspace(extent[0], extent[1], RESOLUTION)
   yg = np.linspace(extent[2], extent[3], RESOLUTION)
   xg, yg = np.meshgrid(xg, yg)
-  i = interpolate.Rbf(xs, ys, dens, function='linear', smooth=.1)
+  i = interpolate.Rbf(xs, ys, dens, function='linear', smooth=.2)
   zg = i(xg, yg)
 
   v = np.linspace(clim[0], clim[1], 9)
