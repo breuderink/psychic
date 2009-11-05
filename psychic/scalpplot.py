@@ -100,7 +100,7 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
 
   v = np.linspace(clim[0], clim[1], 9)
 
-  cnt = plt.contour(xg, yg, zg, v, colors='k', extent=extent)
+  cnt = plt.contour(xg, yg, zg, v, colors='k', extent=extent, linewidths=.5)
   im = plt.imshow(zg, origin='lower', extent=extent, vmin=vmin, vmax=vmax, 
     cmap=cmap)
 
