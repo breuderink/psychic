@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
-#from pylab import griddata
 from scipy import interpolate
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch, Circle
@@ -90,6 +89,7 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   and clim inside a circle. Contours are drawn on top of this grid.
   '''
   RESOLUTION = 50
+  RADIUS = 1.2
   locs = [sensor_dict[l] for l in labels]
   xs, ys, zs = zip(*locs)
   extent = [-1.2, 1.2, -1.2, 1.2]
@@ -103,14 +103,14 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   zg = rbf(xg, yg)
 
   # draw contour
-  v = np.linspace(vmin, vmax, 9)
-  plt.contour(xg, yg, zg, v, colors='k', extent=extent, linewidths=.5)
+  plt.contour(xg, yg, np.where(xg ** 2 + yg ** 2 <= RADIUS ** 2, zg, np.nan),
+    np.linspace(vmin, vmax, 13), colors='k', extent=extent, linewidths=.5)
 
   # draw grid, needs te be last to enable plt.colormap() to work
   im = plt.imshow(zg, origin='lower', extent=extent, vmin=vmin, vmax=vmax, 
     cmap=cmap)
 
   # clip grid to circle
-  patch = Circle((0, 0), radius=1.2, facecolor='none', edgecolor='none')
+  patch = Circle((0, 0), radius=RADIUS, facecolor='none', edgecolor='none')
   plt.gca().add_patch(patch)
   im.set_clip_path(patch)
