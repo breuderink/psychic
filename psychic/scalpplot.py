@@ -1,8 +1,10 @@
-import matplotlib.pyplot as plt
-from pylab import griddata
-from matplotlib.path import Path
-from matplotlib.patches import PathPatch
 import numpy as np
+import copy
+import matplotlib.pyplot as plt
+#from pylab import griddata
+from scipy import interpolate
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch, Circle
 
 BIOSEMI_32_LOCS = {
   'AF3': (-0.409, 0.87, 0.280), 'AF4': (0.409, 0.87, 0.280),
@@ -49,7 +51,7 @@ def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True,
  
 def add_head():
   '''Draw head outline'''
-  LINEWIDHT = 1
+  LINEWIDTH = 1
   nose = [(Path.MOVETO, (-.1, 1.)), (Path.LINETO, (0, 1.1)),
     (Path.LINETO, (.1, 1.))]
 
@@ -61,12 +63,12 @@ def add_head():
 
   # plot outline
   ax = plt.gca()
-  ax.add_artist(plt.Circle((0, 0), 1, fill=False, linewidth=LINEWIDHT))
+  ax.add_artist(plt.Circle((0, 0), 1, fill=False, linewidth=LINEWIDTH))
 
   # add nose and ears
   for p in [nose, lear, rear]:
     code, verts = zip(*p)
-    ax.add_patch(PathPatch(Path(verts, code), fill=False, linewidth=LINEWIDHT))
+    ax.add_patch(PathPatch(Path(verts, code), fill=False, linewidth=LINEWIDTH))
 
 
 def add_sensors(sensor_dict):
@@ -87,12 +89,22 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   locs = [sensor_dict[l] for l in labels]
   xs, ys, zs = zip(*locs)
   RESOLUTION = 50
-  xg = np.linspace(-1, 1, RESOLUTION)
-  yg = np.linspace(-1, 1, RESOLUTION)
-  zg = griddata(xs, ys, dens, xg, yg)
-  extent = [min(xg), max(xg), min(yg), max(yg)]
-  v = np.linspace(clim[0], clim[1], 9)
-  plt.contour(xg, yg, zg, v, colors='k', extent=extent)
+  extent = [-1.2, 1.2, -1.2, 1.2]
   vmin, vmax = clim
-  plt.imshow(zg, origin='lower', interpolation='nearest', 
-    extent=extent, vmin=vmin, vmax=vmax, cmap=cmap)
+
+  xg = np.linspace(extent[0], extent[1], RESOLUTION)
+  yg = np.linspace(extent[2], extent[3], RESOLUTION)
+  xg, yg = np.meshgrid(xg, yg)
+  i = interpolate.Rbf(xs, ys, dens, function='linear', smooth=.1)
+  zg = i(xg, yg)
+
+  v = np.linspace(clim[0], clim[1], 9)
+
+  cnt = plt.contour(xg, yg, zg, v, colors='k', extent=extent)
+  im = plt.imshow(zg, origin='lower', extent=extent, vmin=vmin, vmax=vmax, 
+    cmap=cmap)
+
+  # clip image outside unit circle + a margin
+  patch = Circle((0, 0), radius=1.2, facecolor='none', edgecolor='none')
+  plt.gca().add_patch(patch)
+  im.set_clip_path(patch)
