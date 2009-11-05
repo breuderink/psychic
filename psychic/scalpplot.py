@@ -83,28 +83,34 @@ def add_sensors(sensor_dict):
 
 def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   '''
-  This function uses pylab.griddata, which is known to fail in pathetic cases.
-  If it does, please consult the documentation for pylab.griddata.
+  This function draws the densities using the locations provided in
+  sensor_dict. The two are connected throught the list labels.  The densities
+  are inter/extrapolated on a grid slightly bigger than the head using
+  scipy.interpolate.rbf. The grid is drawn using the colors provided in cmap
+  and clim inside a circle. Contours are drawn on top of this grid.
   '''
+  RESOLUTION = 50
   locs = [sensor_dict[l] for l in labels]
   xs, ys, zs = zip(*locs)
-  RESOLUTION = 50
   extent = [-1.2, 1.2, -1.2, 1.2]
   vmin, vmax = clim
 
+  # interpolate
   xg = np.linspace(extent[0], extent[1], RESOLUTION)
   yg = np.linspace(extent[2], extent[3], RESOLUTION)
   xg, yg = np.meshgrid(xg, yg)
-  i = interpolate.Rbf(xs, ys, dens, function='linear', smooth=.2)
-  zg = i(xg, yg)
+  rbf = interpolate.Rbf(xs, ys, dens, function='linear', smooth=.2)
+  zg = rbf(xg, yg)
 
-  v = np.linspace(clim[0], clim[1], 9)
+  # draw contour
+  v = np.linspace(vmin, vmax, 9)
+  plt.contour(xg, yg, zg, v, colors='k', extent=extent, linewidths=.5)
 
-  cnt = plt.contour(xg, yg, zg, v, colors='k', extent=extent, linewidths=.5)
+  # draw grid, needs te be last to enable plt.colormap() to work
   im = plt.imshow(zg, origin='lower', extent=extent, vmin=vmin, vmax=vmax, 
     cmap=cmap)
 
-  # clip image outside unit circle + a margin
+  # clip grid to circle
   patch = Circle((0, 0), radius=1.2, facecolor='none', edgecolor='none')
   plt.gca().add_patch(patch)
   im.set_clip_path(patch)
