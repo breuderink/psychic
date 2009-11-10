@@ -16,7 +16,7 @@ class Whitening:
     # Calc whitening matrix P
     cov = np.cov(xs, rowvar=False) 
     U, s, V = np.linalg.svd(cov)
-    P = np.dot(U, np.linalg.pinv(np.diag(s)) ** (.5))
+    P = np.dot(U, np.linalg.pinv(np.diag(s)) ** .5)
     rank = np.sum(s > 1e-8)
     self.P = P[:, :rank]
 

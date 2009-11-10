@@ -116,11 +116,11 @@ class TestFilter(unittest.TestCase):
 
   def test_nop(self):
     b, a = np.array([0, 1]), np.array([1])
-    self.assertEqual(filtering.filtfilt_rec((b, a), self.d), self.d)
+    self.assertEqual(filtering.filtfilt_rec(self.d, (b, a)), self.d)
 
   def test_lp(self):
     b, a = signal.iirfilter(4, [.1], btype='low')
-    df = filtering.filtfilt_rec((b, a), self.d)
+    df = filtering.filtfilt_rec(self.d, (b, a))
     spec = np.abs(np.fft.rfft(df.xs, axis=0))
 
     # verify that there is more power in the lowest 10%
@@ -130,6 +130,6 @@ class TestFilter(unittest.TestCase):
 
   def test_hp(self):
     b, a = signal.iirfilter(6, [.9], btype='high')
-    df = filtering.filtfilt_rec((b, a), self.d)
+    df = filtering.filtfilt_rec(self.d, (b, a))
     # only test for zero mean
     np.testing.assert_almost_equal(np.mean(df.xs, axis=0), np.zeros(4), 3)

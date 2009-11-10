@@ -18,7 +18,7 @@ def fir_bandpass(start, end, transition, Fs=1.):
   gain = [0, 1, 0]
   return (signal.remez(M, bands, gain, type='bandpass', Hz=Fs), [1])
 
-def filtfilt_rec((b, a), d):
+def filtfilt_rec(d, (b, a)):
   '''
   Apply a filter defined by the filter coefficients (b, a) to a 
   DataSet, *forwards and backwards*. 
@@ -54,13 +54,9 @@ def decimate_rec(d, factor, max_marker_delay=0):
     xs[:,i] = signal.filtfilt(b, a, xs[:, i])
 
   xs = np.ascontiguousarray(xs[::factor,:]).astype(d.xs.dtype)
-
   ys = resample_markers(d.ys.flatten(), xs.shape[0],
     max_delay=max_marker_delay).reshape(-1, 1)
-
-  # calc ids
   ids = np.ascontiguousarray(d.ids[::factor,:]).astype(d.ids.dtype)
 
   # construct new DataSet
-  extra = d.extra.copy()
-  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), extra=extra, default=d)
+  return DataSet(xs=xs, ys=ys, ids=ids.reshape(-1, 1), default=d)

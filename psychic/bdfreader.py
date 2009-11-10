@@ -58,7 +58,7 @@ class BaseBDFReader:
     # misc
     self.header_nbytes = int(f.read(8))
     format = f.read(44).strip()
-    assert(format == '24BIT')
+    assert format == '24BIT'
     h['n_records'] = int(f.read(8))
     h['record_length'] = int(f.read(8)) # in seconds
     self.nchannels = h['n_channels'] = int(f.read(4))
@@ -76,7 +76,7 @@ class BaseBDFReader:
     h['n_samples_per_record'] = [int(f.read(8)) for n in channels]
     f.read(32 * h['n_channels']) # reserved
     
-    assert(f.tell() == self.header_nbytes)
+    assert f.tell() == self.header_nbytes
 
     self.gain = np.array([(h['physical_max'][n] - h['physical_min'][n]) / 
       float(h['digital_max'][n] - h['digital_min'][n]) for n in channels], 
@@ -91,8 +91,9 @@ class BaseBDFReader:
     h = self.header
     n_channels = h['n_channels']
     n_samp = h['n_samples_per_record']
-    assert(np.min(n_samp) == np.max(n_samp))
-    n_samp = np.min(n_samp)
+    assert len(np.unique(n_samp)) == 1, \
+      'Samplerates differ for different channels'
+    n_samp = n_samp[0]
     result = np.zeros((n_samp, n_channels), np.float32)
 
     for i in range(n_channels):

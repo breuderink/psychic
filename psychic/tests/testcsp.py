@@ -37,7 +37,7 @@ class TestCSP(unittest.TestCase):
 
   def test_m(self):
     '''Test that CSP selects the right number of components'''
-    logging.getLogger('golem.CSP').setLevel(logging.ERROR)
+    logging.getLogger('psychic.CSP').setLevel(logging.ERROR)
 
     d = DataSet(xs=np.hstack([self.d.xs] * 2), feat_shape=(1, 8), 
       default=self.d)

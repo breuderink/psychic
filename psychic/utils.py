@@ -68,7 +68,6 @@ def bdf_dataset(fname):
   data_mask = [i for i, lab in enumerate(b.labels) if lab != STATUS]
   status_mask = b.labels.index(STATUS)
   feat_lab = [b.labels[i] for i in data_mask]
-  assert min(b.sample_rate) == max(b.sample_rate)
   sample_rate = b.sample_rate[0]
   ids = (np.arange(frames.shape[0]) / float(sample_rate)).reshape(-1, 1)
   d = DataSet(
@@ -109,15 +108,15 @@ def slice(d, marker_dict, offsets):
   xs = np.asarray(xs)
   feat_shape = xs.shape[1:]
   xs = xs.reshape(xs.shape[0], -1)
+  ys = helpers.to_one_of_n(ys)
+  ids = np.asarray(ids)
   event_time = dslice.ids[:, 0] - d[i].ids[0, 0]
-  time_lab = ['%.2f' % ti for ti in event_time]
+  time_lab = ['%.3f' % ti for ti in event_time]
   feat_nd_lab = [time_lab, d.feat_lab if d.feat_lab 
     else ['f%d' % i for i in range(d.nfeatures)]]
   feat_dim_lab = ['time', 'channels']
-  ys = helpers.to_one_of_n(ys)
   cl_lab = [lab for lab, _ in sorted(marker_dict.items(), 
     key=operator.itemgetter(1))]
-  ids = np.asarray(ids)
   d = DataSet(xs=xs, ys=ys, ids=ids, cl_lab=cl_lab, 
     feat_shape=feat_shape, feat_nd_lab=feat_nd_lab, 
     feat_dim_lab=feat_dim_lab)
@@ -160,3 +159,14 @@ def detrend_rec(d):
   '''
   xs=np.vstack([signal.detrend(d.xs[:, fi]) for fi in range(d.nfeatures)]).T
   return DataSet(xs=xs, default=d)
+
+
+def wolpaw_bitr(N, P):
+  assert 0 <= P <= 1
+  assert 2 <= N
+  result = np.log2(N)
+  if P > 0: 
+    result += P * np.log2(P)
+  if P < 1:
+    result += (1 - P) * np.log2((1 - P)/(N - 1.))
+  return result

@@ -188,7 +188,7 @@ class TestSlice(unittest.TestCase):
     self.assertEqual(d2.cl_lab, ['b', 'a'])
     self.assertEqual(d2.feat_lab, None)
     self.assertEqual(d2.feat_nd_lab, 
-      [['-2.00', '-1.00', '0.00', '1.00', '2.00', '3.00'], ['f0', 'f1']])
+      [['-2.000', '-1.000', '0.000', '1.000', '2.000', '3.000'], ['f0', 'f1']])
 
 class TestFindSegments(unittest.TestCase):
   def test_naive(self):

@@ -8,8 +8,9 @@ class CSP:
     self.m = m
 
   def train(self, d):
-    assert(d.nclasses == 2)
-    assert(len(d.feat_shape) == 2) # only work with 2D features, time*channels
+    assert d.nclasses == 2
+    assert len(d.feat_shape) == 2, \
+      'CSP only works on 2D features, time x channels'
     
     # Store mean
     xs = np.concatenate(d.nd_xs, axis=0)
@@ -31,10 +32,10 @@ class CSP:
     self.W = np.dot(self.P, self.B)
     if self.W.shape[1] >= self.m:
       comps = range(self.m / 2) + range(-self.m / 2, 0)
-      logging.getLogger('golem.CSP').debug('Selecting components %s' % comps)
+      logging.getLogger('psychic.CSP').debug('Selecting components %s' % comps)
       self.W = self.W[:, comps]
     else:
-      logging.getLogger('golem.CSP').warning(
+      logging.getLogger('psychic.CSP').warning(
         'Rank to low to select %d components. W.shape = %s' %
         (self.m, self.W.shape))
       self.m = self.W.shape[1]

@@ -42,7 +42,6 @@ def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True,
   ax.yaxis.set_visible(False)
   ax.xaxis.set_visible(False)
 
-
   # add details
   add_head()
   if plot_sensors:

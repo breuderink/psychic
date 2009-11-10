@@ -18,7 +18,7 @@ class TFC:
   
   def test(self, d):
     assert len(d.feat_shape) == 2 # [frames x channels]
-    if d.feat_shape != None:
+    if d.feat_dim_lab != None:
       assert d.feat_dim_lab[0] == 'time'
 
     tfc = self.n.test(d)

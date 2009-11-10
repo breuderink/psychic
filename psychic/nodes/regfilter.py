@@ -6,6 +6,12 @@ class RegFilter:
   Creates a regression filter, used to substract EOG from EEG channels.
   remove_mask is a boolean array containing True if the channel contains EOG.
   Assumes detrended or high-passed data (mean = 0).
+
+  See [1].
+
+  [1] Alois Schloegl, Claudia Keinrath, Doris Zimmermann, Reinhold Scherer,
+  Robert Leeb, and Gert Pfurtscheller. A fully automated correction method of
+  EOG artifacts in EEG recordings. Clinical Neurophysiology, 118:98--104, 2007.
   '''
   def __init__(self, noise_channels):
     self.noise_channels = noise_channels
