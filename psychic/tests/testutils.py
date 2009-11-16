@@ -263,3 +263,12 @@ class TestDetrend(unittest.TestCase):
 
     # test reconstruction
     np.testing.assert_almost_equal(d.xs, d2.xs, 0)
+
+class TestBitrate(unittest.TestCase):
+  def test_wolpaw(self):
+    self.assertAlmostEqual(utils.wolpaw_bitr(2, 1/2.), 0)
+    self.assertAlmostEqual(utils.wolpaw_bitr(2, 1), 1)
+    self.assertAlmostEqual(utils.wolpaw_bitr(2, 0), 1)
+    self.assertAlmostEqual(utils.wolpaw_bitr(3, 1/3.), 0)
+    self.assertAlmostEqual(utils.wolpaw_bitr(4, 1/4.), 0)
+    self.assertAlmostEqual(utils.wolpaw_bitr(4, 1), 2)

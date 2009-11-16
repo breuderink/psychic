@@ -1,10 +1,11 @@
-import unittest, os
+import unittest, os, operator
 import numpy as np
-import pylab
+import matplotlib.pyplot as plt
 from scipy import signal
 from golem import DataSet
 from ..plots import plot_filt_char, plot_timeseries
 from .. import filtering
+from ..nodes import OnlineFilter
 
 class TestFilters(unittest.TestCase):
   def setUp(self):
@@ -28,8 +29,8 @@ class TestFilters(unittest.TestCase):
   def test_plot_filt_char(self):
     (b, a) = filtering.fir_bandpass(50, 100, 4, Fs=self.Fs)
     plot_filt_char(b, a, Fs=self.Fs)
-    pylab.savefig('fir_bp50_100.eps')
-    pylab.close()
+    plt.savefig('fir_bp50_100.eps')
+    plt.close()
 
 
 class TestResample(unittest.TestCase):
@@ -133,3 +134,23 @@ class TestFilter(unittest.TestCase):
     df = filtering.filtfilt_rec(self.d, (b, a))
     # only test for zero mean
     np.testing.assert_almost_equal(np.mean(df.xs, axis=0), np.zeros(4), 3)
+
+class TestOnlineFilter(unittest.TestCase):
+  def test_online_filter(self):
+    N = 1000
+    WIN = 40
+    b, a = signal.iirfilter(4, [.01, .2])
+    of = OnlineFilter(b, a)
+
+
+    d = DataSet(xs=np.random.rand(N, 3) + 100, 
+      ys=np.zeros((N, 1)))
+    stream = d
+
+    store = []
+    while len(stream) > 0:
+     head, stream = stream[:WIN], stream[WIN:]
+     store.append(of.test(head))
+    filt_d = reduce(operator.add, store)
+
+    np.testing.assert_equal(filt_d.xs,  signal.lfilter(b, a, d.xs, axis=0))
