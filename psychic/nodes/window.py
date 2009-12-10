@@ -15,27 +15,28 @@ class SlidingWindow:
     wsize, wstep, refi = self.win_size, self.win_step, self.ref_frame
 
     xs, ys, ids = [], [], []
-    while d.ninstances >= wsize:
-      win, d = d[:wsize], d[wstep:]
+    tail = d
+    while tail.ninstances >= wsize:
+      win, tail = tail[:wsize], tail[wstep:]
       xs.append(win.nd_xs)
       ys.append(win.ys[refi])
       ids.append(win.ids[refi])
 
     if len(xs) == 0:
-      return DataSet(xs=np.zeros((0, wsize * d.nfeatures)), 
-        feat_shape=(wsize, d.nfeatures), ys=np.zeros((0, d.nclasses)), 
-        ids = np.zeros((0, d.ids.shape[1])), 
-      default=d)
-
-    xs = np.asarray(xs)
-    feat_shape = xs.shape[1:]
-    xs = xs.reshape(xs.shape[0], -1)
-    ys = np.asarray(ys)
-    ids = np.asarray(ids)
+      xs = np.zeros((0, wsize * d.nfeatures)) 
+      feat_shape = (wsize, d.nfeatures)
+      ys = np.zeros((0, d.nclasses)) 
+      ids = np.zeros((0, d.ids.shape[1]))
+    else:
+      xs = np.asarray(xs)
+      feat_shape = xs.shape[1:]
+      xs = xs.reshape(xs.shape[0], -1)
+      ys = np.asarray(ys)
+      ids = np.asarray(ids)
 
     return DataSet(xs=xs, feat_shape=feat_shape, ys=ys, ids=ids, default=d)
 
-class OnlineSlidingWindow (SlidingWindow):
+class OnlineSlidingWindow(SlidingWindow):
   def __init__(self, win_size, win_step, ref_point=0.5):
     SlidingWindow.__init__(self, win_size, win_step, ref_point)
     self.buffer = None
