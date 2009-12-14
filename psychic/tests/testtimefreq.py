@@ -16,7 +16,7 @@ class TestTFC(unittest.TestCase):
     ys[[1000, 2000, 3000, 4000], :] = 1
     ids = np.arange(xs.shape[0]).reshape(-1, 1) / FS
 
-    self.d = slice(DataSet(xs=xs, ys=ys, ids=ids), dict(fake=1), [-512, 512])
+    self.d = slice(DataSet(xs=xs, ys=ys, ids=ids), {1:'fake'}, [-512, 512])
     
   def test_setup(self):
     d = self.d

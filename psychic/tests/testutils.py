@@ -166,26 +166,44 @@ class TestSlice(unittest.TestCase):
     ys = np.zeros((20, 1))
     ys[[0, 2, 16], 0] = 1
     ys[[4, 12, 19], 0] = 2
-    ids = np.hstack([np.arange(20).reshape(-1, 1), np.ones((20, 1))])
+    ids = np.hstack([np.arange(20).reshape(-1, 1), np.ones((20, 1), int)])
     self.d = DataSet(xs=xs, ys=ys, ids=ids)
+
+  def test_windows(self):
+    pass # @@TODO
+
+  def test_label_order(self):
+    pass # @@TODO + test merging of classes
+
+
+  def test_one_trial(self):
+    pass # @@TODO
+
+  def test_bounds(self):
+    pass # @@TODO
+
+  def test_feat_labs(self):
+    pass # @@TODO
+
 
   def test_slice(self):
     logging.getLogger('psychic.utils.slice').setLevel(logging.ERROR)
-    d2 = utils.slice(self.d, dict(b=1, a=2), offsets=[-2, 4])
+    d2 = utils.slice(self.d, {1:'b', 2:'a'}, offsets=[-2, 4])
     logging.getLogger('psychic.utils.slice').setLevel(logging.WARNING)
     self.assertEqual(d2.feat_shape, (6, 2))
     self.assertEqual(d2.ninstances, 4)
+
+    np.testing.assert_equal(d2.ids, [[2, 1], [4, 1], [12, 1], [16, 1]])
 
     np.testing.assert_equal(d2.xs[0], np.arange(12))
     np.testing.assert_equal(d2.xs[1], np.arange(12) + (4 - 2) * 2)
     np.testing.assert_equal(d2.xs[2], np.arange(12) + (12 - 2) * 2)
     np.testing.assert_equal(d2.xs[3], np.arange(12) + (16 - 2) * 2)
 
-    np.testing.assert_equal(d2.ys, helpers.to_one_of_n([0, 1, 1, 0]))
-    
-    np.testing.assert_equal(d2.ids, [[0, 1], [2, 1], [10, 1], [14, 1]])
+    # ys ~ baab
+    np.testing.assert_equal(d2.ys, helpers.to_one_of_n([1, 0, 0, 1]))
 
-    self.assertEqual(d2.cl_lab, ['b', 'a'])
+    self.assertEqual(d2.cl_lab, ['a', 'b'])
     self.assertEqual(d2.feat_lab, None)
     self.assertEqual(d2.feat_nd_lab, 
       [['-2.000', '-1.000', '0.000', '1.000', '2.000', '3.000'], ['f0', 'f1']])

@@ -84,39 +84,42 @@ def get_samplerate(d):
   '''Derive the sample rate from the timestamps d.ids[:, 0]'''
   return int(1./np.median(np.diff(d.ids[:, 0])))
 
-def slice(d, marker_dict, offsets):
+def slice(d, markers_to_class, offsets):
   '''
-  Slice function, used to extract fixed-length snippets of EEG from a recording.
-  Returns [snippet x frames x channel]
+  Slice function, used to extract fixed-length segments of EEG from a recording.
+  Returns [segment x frames x channel]
   '''
   assert len(d.feat_shape) == 1
+  assert d.nclasses == 1
   start_off, end_off = offsets
   xs, ys, ids = [], [], []
-  (events, events_i) = markers_to_events(d.ys.flat)
-  for (k, v) in marker_dict.items():
-    for i in events_i[events==v]:
+
+  cl_lab = sorted(set(markers_to_class.values()))
+  events, events_i = markers_to_events(d.ys.flat)
+  for (mark, cl) in markers_to_class.items():
+    cl_i = cl_lab.index(cl)
+    for i in events_i[events==mark]: # fails if there is *ONE* event
       (start, end) = i + start_off, i + end_off
       if start < 0 or end > d.ninstances:
         logging.getLogger('psychic.utils.slice').warning(
-          'Cannot extract slice %d-%d for class %s' % (start, end, k))
+          'Cannot extract slice %d-%d for class %s' % (start, end, mark))
         continue
       dslice = d[start:end]
       xs.append(dslice.xs)
-      ys.append(v)
-      ids.append(dslice.ids[0, :])
+      ys.append(cl_i)
+      ids.append(d.ids[i, :])
 
   xs = np.asarray(xs)
   feat_shape = xs.shape[1:]
   xs = xs.reshape(xs.shape[0], -1)
   ys = helpers.to_one_of_n(ys)
   ids = np.asarray(ids)
-  event_time = dslice.ids[:, 0] - d[i].ids[0, 0]
+
+  event_time = np.arange(start_off, end_off) / float(get_samplerate(d))
   time_lab = ['%.3f' % ti for ti in event_time]
   feat_nd_lab = [time_lab, d.feat_lab if d.feat_lab 
     else ['f%d' % i for i in range(d.nfeatures)]]
   feat_dim_lab = ['time', 'channels']
-  cl_lab = [lab for lab, _ in sorted(marker_dict.items(), 
-    key=operator.itemgetter(1))]
   d = DataSet(xs=xs, ys=ys, ids=ids, cl_lab=cl_lab, 
     feat_shape=feat_shape, feat_nd_lab=feat_nd_lab, 
     feat_dim_lab=feat_dim_lab)
