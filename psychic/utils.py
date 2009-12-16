@@ -94,6 +94,8 @@ def slice(d, markers_to_class, offsets):
   start_off, end_off = offsets
   xs, ys, ids = [], [], []
 
+  feat_shape = (end_off - start_off,) + d.feat_shape
+
   cl_lab = sorted(set(markers_to_class.values()))
   events, events_i = markers_to_events(d.ys.flat)
   for (mark, cl) in markers_to_class.items():
@@ -109,11 +111,10 @@ def slice(d, markers_to_class, offsets):
       ys.append(cl_i)
       ids.append(d.ids[i, :])
 
-  xs = np.asarray(xs)
-  feat_shape = xs.shape[1:]
-  xs = xs.reshape(xs.shape[0], -1)
-  ys = helpers.to_one_of_n(ys)
-  ids = np.asarray(ids)
+  m = len(xs)
+  xs = np.asarray(xs).reshape(m, np.prod(feat_shape))
+  ys = helpers.to_one_of_n(ys, class_cols=range(len(cl_lab)))
+  ids = np.asarray(ids).reshape(m, d.ids.shape[1])
 
   event_time = np.arange(start_off, end_off) / float(get_samplerate(d))
   time_lab = ['%.3f' % ti for ti in event_time]

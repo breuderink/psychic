@@ -2,6 +2,7 @@ import unittest, os, logging
 import numpy as np
 from golem import DataSet, helpers
 from .. import utils
+from .. import markers
 
 import matplotlib.pyplot as plt
 
@@ -170,43 +171,72 @@ class TestSlice(unittest.TestCase):
     self.d = DataSet(xs=xs, ys=ys, ids=ids)
 
   def test_windows(self):
-    pass # @@TODO
+    xs = np.random.rand(20, 5)
+    ys = np.zeros((20, 1))
+    ys[[2, 16]] = 1
+    ys[[4, 12]] = 2
 
-  def test_label_order(self):
-    pass # @@TODO + test merging of classes
+    d2 = utils.slice(DataSet(xs=xs, ys=ys), {1:'b', 2:'a'}, offsets=[-2, 4])
 
+    np.testing.assert_equal(d2.ids.flatten(), [2, 4, 12, 16])
 
-  def test_one_trial(self):
-    pass # @@TODO
+    win_base = np.arange(12).reshape(-1, 2)
+    for i, off in enumerate([2, 4, 12, 16]):
+      np.testing.assert_equal(d2.nd_xs[i], xs[off-2:off+4])
+
+  def test_labels(self):
+    xs = np.random.rand(20, 5)
+    ys = np.zeros((20, 1))
+    ys[[2, 16]] = 1
+    ys[[4, 12]] = 2
+    ys[[8]] = 3
+    ys[[9]] = 4
+    d2 = utils.slice(DataSet(xs=xs, ys=ys), {1:'b', 2:'a', 3:'c', 4:'c'}, 
+      offsets=[0, 2])
+    self.assertEqual(d2.cl_lab, ['a', 'b', 'c'])
+    np.testing.assert_equal(d2.get_class(0).ids.flatten(), [4, 12])
+    np.testing.assert_equal(d2.get_class(1).ids.flatten(), [2, 16])
+    np.testing.assert_equal(d2.get_class(2).ids.flatten(), [8, 9])
+
+  def test_few_trials(self):
+    xs = np.random.rand(20, 5)
+    ys = np.zeros((20, 1))
+
+    mdict = {1:'b', 2:'a'}
+  
+    ds = utils.slice(DataSet(xs=xs, ys=ys.copy()), mdict, [0, 2])
+    self.assertEqual(ds.ninstances_per_class, [0, 0])
+    
+    ys[5] = 1
+    ds = utils.slice(DataSet(xs=xs, ys=ys.copy()), mdict, [0, 2])
+    self.assertEqual(ds.ninstances_per_class, [0, 1])
+
+    ys[5] = 2
+    ds = utils.slice(DataSet(xs=xs, ys=ys.copy()), mdict, [0, 2])
+    self.assertEqual(ds.ninstances_per_class, [1, 0])
+
+    ys[6] = 1
+    ds = utils.slice(DataSet(xs=xs, ys=ys.copy()), mdict, [0, 2])
+    self.assertEqual(ds.ninstances_per_class, [1, 1])
+
 
   def test_bounds(self):
-    pass # @@TODO
+    xs = np.random.rand(20, 5)
+    ys = np.zeros((20, 1))
+    ys[[3, 20-3]] = 1
+    ys[[4, 20-4]] = 2
+    logging.getLogger('psychic.utils.slice').setLevel(logging.ERROR)
+    ds = utils.slice(DataSet(xs=xs, ys=ys), {1:'bad', 2:'good'}, [-4, 4])
+    self.assertEqual(ds.ninstances, 2)
+    np.testing.assert_equal(ds.ids.flatten(), [4, 20-4])
+    logging.getLogger('psychic.utils.slice').setLevel(logging.WARNING)
 
   def test_feat_labs(self):
     pass # @@TODO
 
+  def test_nd_ids(self):
+    pass # @@TODO
 
-  def test_slice(self):
-    logging.getLogger('psychic.utils.slice').setLevel(logging.ERROR)
-    d2 = utils.slice(self.d, {1:'b', 2:'a'}, offsets=[-2, 4])
-    logging.getLogger('psychic.utils.slice').setLevel(logging.WARNING)
-    self.assertEqual(d2.feat_shape, (6, 2))
-    self.assertEqual(d2.ninstances, 4)
-
-    np.testing.assert_equal(d2.ids, [[2, 1], [4, 1], [12, 1], [16, 1]])
-
-    np.testing.assert_equal(d2.xs[0], np.arange(12))
-    np.testing.assert_equal(d2.xs[1], np.arange(12) + (4 - 2) * 2)
-    np.testing.assert_equal(d2.xs[2], np.arange(12) + (12 - 2) * 2)
-    np.testing.assert_equal(d2.xs[3], np.arange(12) + (16 - 2) * 2)
-
-    # ys ~ baab
-    np.testing.assert_equal(d2.ys, helpers.to_one_of_n([1, 0, 0, 1]))
-
-    self.assertEqual(d2.cl_lab, ['a', 'b'])
-    self.assertEqual(d2.feat_lab, None)
-    self.assertEqual(d2.feat_nd_lab, 
-      [['-2.000', '-1.000', '0.000', '1.000', '2.000', '3.000'], ['f0', 'f1']])
 
 class TestFindSegments(unittest.TestCase):
   def test_naive(self):
