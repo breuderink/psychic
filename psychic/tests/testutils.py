@@ -219,7 +219,6 @@ class TestSlice(unittest.TestCase):
     ds = utils.slice(DataSet(xs=xs, ys=ys.copy()), mdict, [0, 2])
     self.assertEqual(ds.ninstances_per_class, [1, 1])
 
-
   def test_bounds(self):
     xs = np.random.rand(20, 5)
     ys = np.zeros((20, 1))
@@ -232,10 +231,24 @@ class TestSlice(unittest.TestCase):
     logging.getLogger('psychic.utils.slice').setLevel(logging.WARNING)
 
   def test_feat_labs(self):
-    pass # @@TODO
+    xs = np.random.rand(20, 2)
+    ys = np.zeros((20, 1))
+    ys[10] = 1
+    ids = np.arange(20).reshape(-1, 1) / 10.
+    d = DataSet(xs=xs, ys=ys, ids=ids, feat_lab=['a', 'b'])
+    ds = utils.slice(d, {1:'hit'}, [-2, 2])
+
+    self.assertEqual(ds.feat_nd_lab[0], ['%.3f' % (i / 10.) for i in 
+      range(-2, 2)])
+    self.assertEqual(ds.feat_nd_lab[1], d.feat_lab)
 
   def test_nd_ids(self):
-    pass # @@TODO
+    xs = np.random.rand(20, 2)
+    ys = np.zeros((20, 1))
+    ys[[10, 12]] = 1
+    ids = np.hstack([np.arange(20).reshape(-1, 1), np.ones((20, 1))])
+    ds = utils.slice(DataSet(xs=xs, ys=ys, ids=ids), {1:'hit'}, [-2, 2])
+    np.testing.assert_equal(ds.ids, [[10, 1], [12, 1]])
 
 
 class TestFindSegments(unittest.TestCase):
