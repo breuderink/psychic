@@ -104,7 +104,7 @@ def slice(d, markers_to_class, offsets):
       (start, end) = i + start_off, i + end_off
       if start < 0 or end > d.ninstances:
         logging.getLogger('psychic.utils.slice').warning(
-          'Cannot extract slice %d-%d for class %s' % (start, end, mark))
+          'Cannot extract slice [%d, %d] for class %s' % (start, end, cl))
         continue
       dslice = d[start:end]
       xs.append(dslice.xs)

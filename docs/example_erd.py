@@ -1,44 +1,55 @@
+import logging
 import golem, psychic
-import pylab # for plotting
-import numpy as np # for cov features
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy import signal
 
-d = psychic.bdf_dataset('CL.bdf')
-
-fs = psychic.get_samplerate(d)
-ds = psychic.cut_segments(d, [(219, 220)], [-4 * fs, 4 * fs]) 
-print 'Detected %d training sessions.' % len(ds)
-
-# The first two sessions are imaginary movement, the last two are actual
-# movement. We will combine the first two:
-d = ds[0] + ds[1]
-
-d = psychic.decimate_rec(d, 4)
-fs = psychic.get_samplerate(d)
-print fs
-
-# Now we have a snippet of raw EEG. 
-
-#f_high = signal.iirfilter(6, [1./(fs/2)], btype='high')
-f_beta = signal.iirfilter(6, [8./(fs/2), 30./(fs/2)])
-d = psychic.filtfilt_rec(d, f_beta)
-
-car = psychic.nodes.CAR()
-d = car.test(d)
-
-d = psychic.slice(d, {2:'left', 3:'right'}, [0, 3 * fs])
-
-print d
-d.save('CL.dat')
-
 def var_feat(x):
+  '''Calculate band-power by taking the variance of the time dimension'''
   return np.var(x, axis=0)
 
-chain = golem.nodes.Chain(
-  [psychic.nodes.CSP(m=6),
+def window(x):
+  '''Multiply a Hanning window with the time series'''
+  return np.hanning(x.shape[0]).reshape(-1, 1) * x
+
+# Setup logging levels
+logging.basicConfig(level=logging.WARNING)
+
+# Load file, extract relevant segment, and reduce sample rate
+d = psychic.bdf_dataset('CL.bdf')
+ds = psychic.cut_segments(d, [(219, 220)], [-100, 100]) 
+# only the first two block contain imaginary movement
+d = ds[0] + ds[1] 
+
+# Define preprocessing pipeline, and process EEG
+preprocessing = golem.nodes.Chain([
+  psychic.nodes.Decimate(4),
+  psychic.nodes.Filter(lambda s : signal.iirfilter(6, [8./(s/2), 30./(s/2)])),
+  psychic.nodes.CAR(),
+  psychic.nodes.Slice({2:'left', 3:'right'}, [0, 3]),
+  golem.nodes.FeatMap(window)
+  ])
+
+preprocessing.train(d)
+d = preprocessing.test(d)
+
+print 'After preprocessing:'
+print d
+
+# Plot the preprocessed first trial
+psychic.plots.plot_timeseries(d.nd_xs[0])
+plt.savefig('preprocessed.pdf')
+
+# Build classification pipeline
+cl = golem.nodes.Chain([
+  psychic.nodes.CSP(m=6),
   golem.nodes.FeatMap(var_feat),
-  golem.nodes.SVM(C=100)])
+  golem.nodes.ModelSelect(
+    [golem.nodes.SVM(C=C) for C in np.logspace(-3, 3, 6)],
+    lambda d, n: golem.loss.mean_std(golem.loss.accuracy,
+      golem.cv.rep_cv(d, n, reps=1, K=5))[0]),
+  ])
 
-test_folds = list(golem.cv.rep_cv(d, chain, reps=5, K=10))
-print golem.loss.mean_std(golem.loss.accuracy, test_folds)
-
+# Evaluate BCI classifier
+test_folds = list(golem.cv.rep_cv(d, cl, reps=5, K=10))
+print 'Acc: %.2f (%.2f)' % golem.loss.mean_std(golem.loss.accuracy, test_folds)

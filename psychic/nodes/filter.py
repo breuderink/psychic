@@ -1,16 +1,34 @@
 import numpy as np
 from scipy import signal
 from golem import DataSet
+from golem.nodes import BaseNode
+from psychic.utils import get_samplerate
 
-class OnlineFilter:
-  def __init__(self, b, a):
-    self.b, self.a = b, a
-    self.zi = []
+class Filter(BaseNode):
+  def __init__(self, filt_design_func):
+    '''
+    Forward-backward filtering node. filt_design_func is a function that takes
+    the sample rate as an argument, and returns the filter coefficients (b, a).
+    '''
+    self.filt_design_func = filt_design_func
+    BaseNode.__init__(self)
 
-  def train(self, d):
-    pass
+  def train_(self, d):
+    fs = get_samplerate(d)
+    self.log.info('Detected sample rate of %d Hz' % fs)
+    self.filter = self.filt_design_func(fs)
 
-  def test(self, d):
+  def test_(self, d):
+    b, a = self.filter
+    xs = np.hstack([signal.filtfilt(b, a, d.xs[:, i]).reshape(-1, 1) 
+      for i in range(d.nfeatures)])
+    return DataSet(xs=xs, default=d)
+
+class OnlineFilter(Filter):
+  def __init__(self, filt_design_func):
+    Filter.__init__(self, filt_design_func)
+
+  def test_(self, d):
     b, a = self.b, self.a
     if self.zi == []:
       self.zi = [signal.lfiltic(b, a, np.zeros(b.size)) for fi in 
