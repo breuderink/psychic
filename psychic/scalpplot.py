@@ -103,7 +103,7 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
 
   # draw contour
   plt.contour(xg, yg, np.where(xg ** 2 + yg ** 2 <= RADIUS ** 2, zg, np.nan),
-    np.linspace(vmin, vmax, 13), colors='k', extent=extent, linewidths=.5)
+    np.linspace(vmin, vmax, 13), colors='k', extent=extent, linewidths=.3)
 
   # draw grid, needs te be last to enable plt.colormap() to work
   im = plt.imshow(zg, origin='lower', extent=extent, vmin=vmin, vmax=vmax, 

@@ -1,8 +1,0 @@
-Requirements
-============
-
-* Python
-* Numpy
-* Pylab
-
-* Golem

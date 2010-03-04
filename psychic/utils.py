@@ -14,7 +14,7 @@ def sliding_window_indices(window_size, window_step, sig_len):
   return starts + np.arange(window_size)
 
 def sliding_window(signal, window_size, window_step, win_func=None):
-  '''Apply a sliding window to a 1D signal. Returns window indices.'''
+  '''Apply a sliding window to a 1D signal. Returns [#windows x window_size].'''
   if signal.ndim != 1:
     raise ValueError, 'Sliding window works on 1D arrays only!'
   if win_func != None:
