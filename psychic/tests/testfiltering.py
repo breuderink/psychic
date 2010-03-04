@@ -137,20 +137,24 @@ class TestFilter(unittest.TestCase):
 
 class TestOnlineFilter(unittest.TestCase):
   def test_online_filter(self):
-    N = 1000
-    WIN = 40
-    b, a = signal.iirfilter(4, [.01, .2])
-    of = OnlineFilter(b, a)
+    N = 200
+    WIN = 50
 
+    d = DataSet(xs=np.random.rand(N, 3) + 100, ys=np.zeros((N, 1)))
+    d0, stream = d[:10], d[10:]
 
-    d = DataSet(xs=np.random.rand(N, 3) + 100, 
-      ys=np.zeros((N, 1)))
-    stream = d
+    def filt_design_f(sr):
+      return signal.iirfilter(4, [.01, .2])
+
+    of = OnlineFilter(filt_design_f)
+    of.train(d0) # get sampling rate for filter design
 
     store = []
-    while len(stream) > 0:
-     head, stream = stream[:WIN], stream[WIN:]
+    tail = stream
+    while len(tail) > 0:
+     head, tail = tail[:WIN], tail[WIN:]
      store.append(of.test(head))
     filt_d = reduce(operator.add, store)
 
-    np.testing.assert_equal(filt_d.xs,  signal.lfilter(b, a, d.xs, axis=0))
+    b, a = of.filter
+    np.testing.assert_equal(filt_d.xs,  signal.lfilter(b, a, stream.xs, axis=0))

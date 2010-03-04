@@ -27,9 +27,10 @@ class Filter(BaseNode):
 class OnlineFilter(Filter):
   def __init__(self, filt_design_func):
     Filter.__init__(self, filt_design_func)
+    self.zi = []
 
   def test_(self, d):
-    b, a = self.b, self.a
+    b, a = self.filter
     if self.zi == []:
       self.zi = [signal.lfiltic(b, a, np.zeros(b.size)) for fi in 
         range(d.nfeatures)]
