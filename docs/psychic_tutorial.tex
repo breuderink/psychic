@@ -1,0 +1,84 @@
+\documentclass[a4paper]{article}
+\usepackage{listings}
+\usepackage[usenames, dvipsnames]{color}
+\usepackage{hyperref}
+
+\title{Getting started with Psychic}
+\author{Boris Reuderink}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This document is meant as a getting-started manual for the Brain-Computer
+Interfacing (BCI) library Psychic. First the installation of Psychic and all of its dependencies is outlined, including testing the installation. Then we present a short example that demonstrates how to classify snippets of EEG from a previously recorded session.
+\end{abstract}
+
+
+\section{Installation}
+First, we assume the reader is already familiar with the Python language, and
+already has a recent, working Python installation on his system. 
+\marginpar{Python} 
+If not, we recommend the ``Dive into Python'' book that is freely available
+online \footnote{\url{http://diveintopython.org/}}.
+
+
+Psychic depends on a few Python external Python libraries, for example Numpy\footnote{\url{http://numpy.scipy.org/}} for working with arrays, matrices,
+linear algebra and FFT operations, SciPy\footnote{\url{http://www.scipy.org/}}
+for signal processing function (such as filter design) and statistical
+functions, Matplotlib\footnote{\url{http://matplotlib.sourceforge.net/}} for
+plotting.
+
+Besides these (fairly standard) Python modules, we also need to install Golem.
+Golem is a machine learning library, written by the same author. Psychic is
+implemented as an extension to Golem, and depends on Golem for large parts of
+its functionality. Golem can be downloaded from
+
+\subsection{Installing the external dependencies}
+Installing Psychic is really simple if we reduce it to its core. First, we need to install NumPy, SciPy and Matplotlib. On the Ubuntu, installing these libraries as as simple as:
+
+\begin{verbatim}
+sudo apt-get install python-numpy python-scipy python-matplotlib
+\end{verbatim}
+
+\subsection{Installing Golem}
+\marginpar{Golem} Then we need to install Golem from \url{http://code.google.com/p/golemml/}.
+Currently, Golem needs an additional optimzation package called
+\texttt{cvxopt}. 
+
+\begin{verbatim}
+sudo apt-get install python-cvxopt
+\end{verbatim}
+
+Now that all the external dependencies are installed, we can verify the
+installation by running the automated tests. \marginpar{unit-tests} Go the
+directory where Golem was extracted, and run \texttt{runtest.py} in the
+\texttt{golem} subdirectory. All unittest should pass, and a few figures
+displaying classifiers separating examples should be written to the
+\texttt{out} directory.
+
+
+\subsection{System-wide installation}
+While we have demonstrated that Golem is working correctly, we still need to
+make it available to other Python programs, such as Psychic. There are
+different approaches, including copying the \texttt{golem} directory to the
+current directory, adding the \texttt{golem} to the \texttt{PYTHONPATH}, using
+\texttt{easy\_install}, or placing the \texttt{golem} subdir in the directories
+specified in PEP370 (recommended). As Python package management falls outside of
+the scope of this manual, system wide installation is left as an exercise for
+the reader. 
+
+\subsection{Installing Psychic}
+\marginpar{Psychic}
+Now Golem is installed, it is time to download Psychic from
+\url{http://code.google.com/p/psychicml/}. As with Golem, we verify that all
+the units-tests pass by running \texttt{runtests.py} in the \texttt{psychic}
+directory.
+
+\section{A Simple Movement Classifier}
+
+\lstset{numbers=left, numberstyle=\tiny, numbersep=5pt, 
+  basicstyle=\small, commentstyle=\color{ForestGreen},
+  frame=single, breaklines=true, title=\lstname}
+\lstinputlisting[language=Python, float]{example_erd.py}
+
+\end{document}
