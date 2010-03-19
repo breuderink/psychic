@@ -18,10 +18,10 @@ class Slice(BaseNode):
     return slice(d, self.mdict, (self.offsets * self.sample_rate).astype(int))
 
 class Decimate(BaseNode):
-  def __init__(self, factor):
+  def __init__(self, factor, max_marker_delay=0):
     self.factor = factor
+    self.max_marker_delay = max_marker_delay
     BaseNode.__init__(self)
 
   def test_(self, d):
-    return decimate_rec(d, self.factor)
-
+    return decimate_rec(d, self.factor, self.max_marker_delay)
