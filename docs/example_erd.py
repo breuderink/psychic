@@ -18,29 +18,19 @@ def window(x):
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('golem.nodes.ModelSelect').setLevel(logging.INFO)
 
+# Load dataset (see also psychic.helpers.bdf_dataset)
+d = golem.DataSet.load('S9.dat')
+
 # Define preprocessing pipeline
 preprocessing = golem.nodes.Chain([
-  # Downsample with a factor of four
-  psychic.nodes.Decimate(4, max_marker_delay=3),
   # Filter to beta range (8--30 Hz)
   psychic.nodes.Filter(lambda s : signal.iirfilter(6, [8./(s/2), 30./(s/2)])),
   # Extract 2 second window centered on key-press
   psychic.nodes.Slice({1:'left', 2:'right', 3:'left', 4:'right'}, [-1, 1]),
   ])
 
-  
-# Load file, extract relevant segment, and reduce sample rate
-d = psychic.bdf_dataset('S9.bdf')
-print d
-# Remove all non-EEG channels:
-d = golem.DataSet(xs=d.xs[:, :32], feat_lab=d.feat_lab[:32], default=d)
-print d, d.feat_lab
-print psychic.get_samplerate(d)
-
-preprocessing.train(d)
+preprocessing.train(d) # Required to calculate sampling rate
 d = preprocessing.test(d)
-
-print 'After preprocessing:', d
 
 NTRAIN = 500
 d, dtest = d[:NTRAIN], d[NTRAIN:]
