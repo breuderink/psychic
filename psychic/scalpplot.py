@@ -39,8 +39,8 @@ def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True,
   plt.box(False)
   ax = plt.gca()
   ax.set_aspect(1.2)
-  ax.yaxis.set_visible(False)
-  ax.xaxis.set_visible(False)
+  ax.yaxis.set_ticks([],[])
+  ax.xaxis.set_ticks([],[])
 
   # add details
   add_head()
