@@ -1,12 +1,10 @@
 import logging
 import numpy as np
 from golem import DataSet
+from golem.nodes import BaseNode
 
-class Whitening:
-  def __init__(self):
-    pass
-
-  def train(self, d):
+class Whitening(BaseNode):
+  def train_(self, d):
     assert len(d.feat_shape) == 2 # only work with 2D features, time*channels
     
     # Store mean
@@ -20,7 +18,7 @@ class Whitening:
     rank = np.sum(s > 1e-8)
     self.P = P[:, :rank]
 
-  def test(self, d):
+  def apply_(self, d):
     xs = np.concatenate(d.nd_xs, axis=0) - self.mean
     xs = np.dot(xs, self.P).reshape(d.ninstances, -1)
     feat_shape = (d.feat_shape[0], self.P.shape[1])

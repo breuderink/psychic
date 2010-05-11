@@ -14,7 +14,7 @@ class Slice(BaseNode):
   def train_(self, d):
     self.sample_rate = get_samplerate(d)
 
-  def test_(self, d):
+  def apply_(self, d):
     return slice(d, self.mdict, (self.offsets * self.sample_rate).astype(int))
 
 class Decimate(BaseNode):
@@ -23,5 +23,5 @@ class Decimate(BaseNode):
     self.max_marker_delay = max_marker_delay
     BaseNode.__init__(self)
 
-  def test_(self, d):
+  def apply_(self, d):
     return decimate_rec(d, self.factor, self.max_marker_delay)

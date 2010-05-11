@@ -1,17 +1,16 @@
 import numpy as np
 from golem import DataSet
+from golem.nodes import BaseNode
 from ..utils import sliding_window_indices
 
-class SlidingWindow:
+class SlidingWindow(BaseNode):
   def __init__(self, win_size, win_step, ref_point=.5):
+    BaseNode.__init__(self)
     self.win_size = win_size
     self.win_step = win_step
     self.ref_frame = int(float(ref_point) * (self.win_size - 1))
 
-  def train(self, d):
-    pass
-
-  def test(self, d):
+  def apply_(self, d):
     wsize, wstep, refi = self.win_size, self.win_step, self.ref_frame
 
     xs, ys, ids = [], [], []
@@ -41,7 +40,7 @@ class OnlineSlidingWindow(SlidingWindow):
     SlidingWindow.__init__(self, win_size, win_step, ref_point)
     self.buffer = None
 
-  def test(self, d):
+  def apply_(self, d):
     if self.buffer != None:
       self.buffer = self.buffer + d
     else:
@@ -55,4 +54,4 @@ class OnlineSlidingWindow(SlidingWindow):
       cons = 0
     d, self.buffer = self.buffer[:cons], \
       self.buffer[max(0, cons-wsize + wstep):]
-    return SlidingWindow.test(self, d)
+    return SlidingWindow.apply_(self, d)

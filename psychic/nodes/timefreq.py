@@ -1,22 +1,20 @@
 import logging
 import numpy as np
 from golem import DataSet
-from golem.nodes import FeatMap
+from golem.nodes import FeatMap, BaseNode
 from ..utils import spectrogram, sliding_window
 
-class TFC:
+class TFC(BaseNode):
   def __init__(self, nfft, win_step):
     def tfc(x):
       return np.dstack([spectrogram(x[:, ci], nfft, win_step) 
         for ci in range(x.shape[1])])
 
+    BaseNode.__init__(self)
     self.nfft, self.win_step = nfft, win_step
     self.n = FeatMap(tfc)
-
-  def train(self, d):
-    pass
   
-  def test(self, d):
+  def apply_(self, d):
     assert len(d.feat_shape) == 2 # [frames x channels]
     if d.feat_dim_lab != None:
       assert d.feat_dim_lab[0] == 'time'
