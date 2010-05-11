@@ -1,6 +1,7 @@
-1 spectogram
-2 AUC-o-gram
-2 bdf_dataset has to strip battery info etc.
-2 BDF-content unittest
-3 EDF loader
+1 Integrate with golem.nodes.BaseNode
+1 Make plot_timeseries plot channel labels
+1 Unified spatial filtering
+2 Make import psychic clean
+2 Remove crap
 2 santity check in preprocessing (bad channels, NaNs, incontinuities, CM?)
+3 EDF loader
