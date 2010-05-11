@@ -1,13 +1,15 @@
 import logging
 import numpy as np
 from golem import DataSet
+from golem.nodes import BaseNode
 
-class CSP:
+class CSP(BaseNode):
   def __init__(self, m=2):
     assert m % 2 == 0, 'CSP works with an *even* number of components.'
+    BaseNode.__init__(self)
     self.m = m
 
-  def train(self, d):
+  def train_(self, d):
     assert d.nclasses == 2
     assert len(d.feat_shape) == 2, \
       'CSP only works on 2D features, time x channels'
@@ -40,7 +42,7 @@ class CSP:
         (self.m, self.W.shape))
       self.m = self.W.shape[1]
 
-  def test(self, d):
+  def apply_(self, d):
     xs = np.concatenate(d.nd_xs, axis=0) - self.mean
     xs = np.dot(xs, self.W).reshape(d.ninstances, -1)
     feat_shape = (d.feat_shape[0], self.m)

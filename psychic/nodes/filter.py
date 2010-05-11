@@ -10,15 +10,15 @@ class Filter(BaseNode):
     Forward-backward filtering node. filt_design_func is a function that takes
     the sample rate as an argument, and returns the filter coefficients (b, a).
     '''
-    self.filt_design_func = filt_design_func
     BaseNode.__init__(self)
+    self.filt_design_func = filt_design_func
 
   def train_(self, d):
     fs = get_samplerate(d)
     self.log.info('Detected sample rate of %d Hz' % fs)
     self.filter = self.filt_design_func(fs)
 
-  def test_(self, d):
+  def apply_(self, d):
     b, a = self.filter
     xs = np.hstack([signal.filtfilt(b, a, d.xs[:, i]).reshape(-1, 1) 
       for i in range(d.nfeatures)])
@@ -29,7 +29,7 @@ class OnlineFilter(Filter):
     Filter.__init__(self, filt_design_func)
     self.zi = []
 
-  def test_(self, d):
+  def apply_(self, d):
     b, a = self.filter
     if self.zi == []:
       self.zi = [signal.lfiltic(b, a, np.zeros(b.size)) for fi in 
