@@ -1,4 +1,4 @@
-import unittest, os, logging
+import unittest, os.path, logging
 import numpy as np
 from golem import DataSet, helpers
 from .. import utils
@@ -124,7 +124,7 @@ class TestSpectrogram(unittest.TestCase):
     plt.imshow(10 * np.log10(utils.spectrogram(
       self.beta_spike, NFFT, NFFT/2).T), interpolation='nearest',
       origin='lower')
-    plt.savefig('spec.eps')
+    plt.savefig(os.path.join('out', 'spec.eps'))
   
   def test_wave_spike(self):
     FS, N, NFFT = self.FS, self.N, self.NFFT

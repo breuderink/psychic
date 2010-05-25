@@ -1,5 +1,4 @@
-import unittest, logging
-import os.path
+import unittest, logging, os.path
 import numpy as np
 import pylab
 from ..nodes import CSP
@@ -60,7 +59,7 @@ class TestCSP(unittest.TestCase):
     n.train(d)
     d2 = n.apply(d)
     plots.scatter_plot(d2)
-    pylab.savefig('csp.eps')
+    pylab.savefig(os.path.join('out', 'csp.eps'))
     pylab.close()
   
   def test_2d(self):
