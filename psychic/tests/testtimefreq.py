@@ -29,7 +29,7 @@ class TestTFC(unittest.TestCase):
     w_size, w_step = 64, 32
     tfc = TFC(w_size, w_step)
     tfc.train(d)
-    td = tfc.test(d)
+    td = tfc.apply(d)
 
     nwindows = int(np.floor((d.feat_shape[0] - w_size + w_step) / 
       float(w_step)))

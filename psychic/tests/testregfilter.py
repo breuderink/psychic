@@ -24,7 +24,7 @@ class TestRegFilter(unittest.TestCase):
       ys=np.zeros((TestRegFilter.NINSTANCES, 1)))
     n = RegFilter(range(8, 12))
     n.train(d)
-    d2 = n.test(d)
+    d2 = n.apply(d)
 
     self.assertEqual(d2.nfeatures, 8)
     self.assertEqual(d2.ninstances, d.ninstances)
@@ -46,7 +46,7 @@ class TestRegFilter(unittest.TestCase):
     noise_channels = [i for i in range(d.nfeatures) if not i % 2]
     n = RegFilter(noise_channels)
     n.train(d)
-    d2 = n.test(d)
+    d2 = n.apply(d)
     self.assertEqual(d2.feat_lab, 
       ['f%d' % fi for fi in range(12) if fi % 2])
 

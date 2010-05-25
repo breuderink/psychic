@@ -17,7 +17,7 @@ class TestCSP(unittest.TestCase):
     '''Test for diagonal, descending class cov'''
     d, n = self.d, self.n
     n.train(d)
-    d2 = n.test(d.get_class(0))
+    d2 = n.apply(d.get_class(0))
 
     self.assertEqual(d2.nfeatures, 2)
     self.assertEqual(d2.nclasses, 2)
@@ -30,7 +30,7 @@ class TestCSP(unittest.TestCase):
     '''Test that the CSP-transformed features are uncorrelated'''
     d, n = self.d, self.n
     n.train(d)
-    d2 = n.test(d)
+    d2 = n.apply(d)
 
     cov = np.cov(d2.xs, rowvar=False)
     np.testing.assert_almost_equal(cov, np.eye(2))
@@ -45,7 +45,7 @@ class TestCSP(unittest.TestCase):
     for m in [2, 4, 6]:
       n = CSP(m=m)
       n.train(d)
-      d2 = n.test(d)
+      d2 = n.apply(d)
 
       if m <= 4:
         self.assertEqual(d2.nfeatures, m)
@@ -58,7 +58,7 @@ class TestCSP(unittest.TestCase):
     '''Plot CSP for visual inspection'''
     d, n = self.d, self.n
     n.train(d)
-    d2 = n.test(d)
+    d2 = n.apply(d)
     plots.scatter_plot(d2)
     pylab.savefig('csp.eps')
     pylab.close()
@@ -69,7 +69,7 @@ class TestCSP(unittest.TestCase):
       feat_shape=(2, 4))
     n = CSP(m=2)
     n.train(d)
-    d = n.test(d)
+    d = n.apply(d)
     self.assertEqual(d.nfeatures, 4)
     self.assertEqual(d.nclasses, 2)
 

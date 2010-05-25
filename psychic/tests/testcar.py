@@ -12,7 +12,7 @@ class TestCar(unittest.TestCase):
   def test_car(self):
     d = self.d
     car = CAR()
-    cd = car.test(d)
+    cd = car.apply(d)
 
     np.testing.assert_equal(cd.xs.mean(axis=1), np.zeros(d.ninstances))
     np.testing.assert_equal(cd.xs.mean(axis=0), [-1, 0, 1])
@@ -20,7 +20,7 @@ class TestCar(unittest.TestCase):
   def test_store_car(self):
     d = self.d
     car = CAR(add_CAR=True)
-    cd = car.test(d)
+    cd = car.apply(d)
 
     np.testing.assert_equal(cd.xs[:, :-1].mean(axis=1), np.zeros(d.ninstances))
     np.testing.assert_equal(cd.xs[:, -1], np.arange(1, 118+1, 3))
@@ -30,6 +30,6 @@ class TestCar(unittest.TestCase):
     d = self.d
     mask = [1, 2]
     car = CAR(mask=mask)
-    cd = car.test(d)
+    cd = car.apply(d)
     np.testing.assert_equal(cd.xs[:, mask].mean(axis=1), np.zeros(d.ninstances))
     np.testing.assert_equal(np.mean(cd.xs, 0)[1:], [-.5, .5])

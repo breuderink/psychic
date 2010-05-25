@@ -157,13 +157,6 @@ def cut_segments(d, marker_tuples, offsets=[0, 0]):
   segments.sort()
   return [d[s + start_off:e + end_off] for (s, e) in segments]
 
-def detrend_rec(d):
-  ''' 
-  Linearly detrend a recording, using scipy.signal.detrend().
-  '''
-  xs=np.vstack([signal.detrend(d.xs[:, fi]) for fi in range(d.nfeatures)]).T
-  return DataSet(xs=xs, default=d)
-
 
 def wolpaw_bitr(N, P):
   assert 0 <= P <= 1

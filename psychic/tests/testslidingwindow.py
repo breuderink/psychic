@@ -17,7 +17,7 @@ class TestWindowNode(unittest.TestCase):
       for wstep in [2, 5]:
         for ref_point in [0, .5, 1]:
           sw = SlidingWindow(wsize, wstep, ref_point)
-          d2 = sw.test(d)
+          d2 = sw.apply(d)
 
           # test shapes
           self.assertEqual(d2.feat_shape, (wsize, d.nfeatures))
@@ -49,6 +49,6 @@ class TestWindowNode(unittest.TestCase):
         stream = d
         while len(stream) > 0:
           head, stream = stream[:4], stream[4:]
-          wins.append(osw.test(head))
+          wins.append(osw.apply(head))
 
-        self.assertEqual(sw.test(d), reduce(operator.add, wins))
+        self.assertEqual(sw.apply(d), reduce(operator.add, wins))

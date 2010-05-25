@@ -13,41 +13,6 @@ def plot_timeseries(frames, time=None, offset=None, color='k', linestyle='-'):
   plt.plot(time, frames - np.mean(frames, axis=0) + 
     np.arange(frames.shape[1]) * offset, color=color, ls=linestyle)
 
-def plot_filt_char(b, a, Fs=1):
-  '''Plot frequency, phase and impulse response of a filter (b, a)'''
-  (w, h) = signal.freqz(b, a)
-  w *= Fs/(2 * np.pi)
-  plt.subplot(221)
-  plt.title('Frequency response')
-  plt.ylabel('Magnitude (dB)')
-  plt.plot(w, 2 * 10 * np.log10(np.abs(h)))
-  plt.xlim([min(w), max(w)])
-  plt.grid()
-
-  plt.subplot(222)
-  plt.title('Phase response')
-  plt.ylabel('Phase (radians)')
-  plt.plot(w, np.unwrap(np.angle(h)))
-  plt.xlim([min(w), max(w)])
-  plt.grid()
-
-  plt.subplot(223)
-  plt.title('Frequency response')
-  plt.ylabel('Amplitude')
-  plt.plot(w, np.abs(h))
-  plt.xlim([min(w), max(w)])
-  plt.grid()
-
-  plt.subplot(224)
-  plt.title('Impulse reponse')
-  IMPULSELEN = 1000
-  x = np.arange(IMPULSELEN) - 50
-  y = np.zeros(IMPULSELEN)
-  y[x == 0] = 1
-  plt.plot(x, signal.lfilter(b, a, y))
-  plt.ylim([-1, 1])
-  plt.xlim([min(x), max(x)])
-  plt.grid()
 
 def plot_scalpgrid(scalps, sensors, locs=BIOSEMI_32_LOCS, width=None, 
   clim=None, cmap=None, titles=None):

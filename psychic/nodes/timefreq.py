@@ -19,7 +19,7 @@ class TFC(BaseNode):
     if d.feat_dim_lab != None:
       assert d.feat_dim_lab[0] == 'time'
 
-    tfc = self.n.test(d)
+    tfc = self.n.apply(d)
     feat_dim_lab = ['time', 'frequency', d.feat_dim_lab[1]]
 
     if d.feat_nd_lab != None:
