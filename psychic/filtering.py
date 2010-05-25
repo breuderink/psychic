@@ -9,9 +9,8 @@ def filtfilt_rec(d, (b, a)):
   DataSet, *forwards and backwards*. 
   d.xs is interpreted as [frames x channels].
   '''
-  xs = np.hstack([signal.filtfilt(b, a, d.xs[:, i]).reshape(-1, 1) 
-    for i in range(d.nfeatures)])
-  return DataSet(xs=xs, default=d)
+  return DataSet(xs=np.apply_along_axis(lambda x: signal.filtfilt(b, a, x), 0,
+    d.xs), default=d)
 
 def resample_rec(d, factor, max_marker_delay=0):
   '''Resample a recording to length d.ninstances * factor'''
