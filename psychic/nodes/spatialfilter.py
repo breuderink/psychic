@@ -1,5 +1,50 @@
 import numpy as np
 from numpy import linalg as la
+from golem import DataSet
+from golem.nodes import BaseNode
+
+# TODO is FLAT a special case of TRIAL?
+FLAT, TRIAL, COV = range(3)
+
+class BaseSpatialFilter(BaseNode):
+  def __init__(self, ftype):
+    BaseNode.__init__(self)
+    self.W = None
+    self.ftype = ftype
+
+  def get_covs(self, d):
+    '''
+    Returns a list (or array) containing covariances, taking into account the
+    type (flat, trial or cov) of the filter.
+    '''
+    if self.ftype == TRIAL:
+      assert len(d.feat_shape) == 2
+      return [np.cov(x, rowvar=False) for x in d.nd_xs]
+    if self.ftype == COV:@@
+      assert len(d.feat_shape) == 2 and d.feat_shape[0] == d.feat_shape[1]
+      return d.nd_xs
+    if self.ftype == FLAT:
+      assert len(d.feat_shape) == 1
+      return [np.cov(d.xs, rowvar=False)]
+
+  def filter(self, d):
+    W = self.W
+    if self.ftype == TRIAL:
+      xs = [np.dot(t, W for t in d.nd_xs]
+    elif self.ftype == COV:
+      xs = [reduce(np.dot, [W.T, t, W] for t in d.nd_xs]
+    elif self.ftype == FLAT:
+      xs = np.dot(d.xs, W)
+    return DataSet(xs=xs, default=d)
+    
+
+
+def cov0(X):
+  '''
+  Calculate X^T X, a covariance estimate for zero-mean data without 
+  normalizatoin.
+  '''
+  return np.dot(X.T, X)
 
 def car(n):
   return np.eye(n) - np.ones((n, n)) / float(n)

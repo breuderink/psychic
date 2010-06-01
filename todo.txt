@@ -2,5 +2,5 @@
 1 Unified spatial filtering
 2 Make import psychic clean
 2 Remove crap
-2 santity check in preprocessing (bad channels, NaNs, incontinuities, CM?)
+2 Santity check in preprocessing (bad channels, discontinuities, EOG?)
 3 EDF loader
