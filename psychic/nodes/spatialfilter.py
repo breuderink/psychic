@@ -3,10 +3,13 @@ from numpy import linalg as la
 from golem import DataSet
 from golem.nodes import BaseNode
 
-# TODO is FLAT a special case of TRIAL?
-FLAT, TRIAL, COV = range(3)
+PLAIN, TRIAL, COV = range(3)
 
 class BaseSpatialFilter(BaseNode):
+  '''
+  Handles the application of a spatial filter matrix W to different types
+  of datasets.
+  '''
   def __init__(self, ftype):
     BaseNode.__init__(self)
     self.W = None
@@ -20,24 +23,44 @@ class BaseSpatialFilter(BaseNode):
     if self.ftype == TRIAL:
       assert len(d.feat_shape) == 2
       return [np.cov(x, rowvar=False) for x in d.nd_xs]
-    if self.ftype == COV:@@
+    if self.ftype == COV:
       assert len(d.feat_shape) == 2 and d.feat_shape[0] == d.feat_shape[1]
       return d.nd_xs
-    if self.ftype == FLAT:
+    if self.ftype == PLAIN:
       assert len(d.feat_shape) == 1
       return [np.cov(d.xs, rowvar=False)]
 
-  def filter(self, d):
+  def sfilter(self, d):
     W = self.W
     if self.ftype == TRIAL:
-      xs = [np.dot(t, W for t in d.nd_xs]
+      xs = np.array([np.dot(t, W) for t in d.nd_xs])
     elif self.ftype == COV:
-      xs = [reduce(np.dot, [W.T, t, W] for t in d.nd_xs]
-    elif self.ftype == FLAT:
+      xs = np.array([reduce(np.dot, [W.T, t, W]) for t in d.nd_xs])
+    elif self.ftype == PLAIN:
       xs = np.dot(d.xs, W)
-    return DataSet(xs=xs, default=d)
-    
 
+    feat_shape = xs.shape[1:]
+    xs = xs.reshape(xs.shape[0], -1)
+    return DataSet(xs=xs, feat_shape=feat_shape, default=d)
+
+  def apply_(self, d):
+    return self.sfilter(d)
+
+class CSP(BaseSpatialFilter):
+  def __init__(self, m, ftype=TRIAL):
+    BaseSpatialFilter.__init__(self, ftype)
+    self.m = m
+
+  def train_(self, d):
+    assert d.nclasses == 2
+    a = d.get_class(0)
+    b = d.get_class(1)
+    self.W = csp(self.get_covs(a), self.get_covs(b), self.m)
+
+class CAR(BaseSpatialFilter):
+  def __init__(self, n, ftype=PLAIN):
+    BaseSpatialFilter.__init__(self, ftype)
+    self.W = car(n)
 
 def cov0(X):
   '''
@@ -59,7 +82,7 @@ def sym_whitening(sigma):
 
 def outer_n(n):
   '''Return a list with indices from both ends, i.e.: [0, 1, 2, -3, -2, -1]'''
-  return np.roll(np.arange(n) - n/2, (n+1)/2)
+  return np.roll(np.arange(n) - n/2, (n + 1) / 2)
 
 def csp_base(sigma_a, sigma_b):
   '''Return CSP transformation matrix. No dimension reduction is performed.'''
@@ -105,7 +128,67 @@ def deflate(sigma, noise_inds):
   W = np.eye(n) - np.dot(select_channels(n, noise_inds), B)
   return W[:, ~mask]
 
+# ----------------------
 import unittest
+import matplotlib.pyplot as plt
+
+class TestBaseSpatialFilter(unittest.TestCase):
+  def setUp(self):
+    # build dataset with artificial trials
+    dtrial = DataSet(xs=np.random.rand(10, 32 * 128) + 100, 
+      feat_shape=(128, 32), ys=np.zeros((10, 1)))
+    
+    # derive cov-based dataset
+    covs = np.asarray([np.cov(t, rowvar=False) for t in dtrial.nd_xs])
+    dcov = DataSet(xs=covs.reshape(covs.shape[0], -1), 
+      feat_shape=covs.shape[1:], default=dtrial)
+
+    # construct plain dataset (without trials) based on dtrail
+    xs = np.vstack(dtrial.nd_xs)
+    dplain = DataSet(xs=xs, ys=np.zeros((xs.shape[0], 1)))
+
+    self.dplain = dplain
+    self.dtrail = dtrial
+    self.dcov = dcov
+
+  def test_plain(self):
+    d = self.dplain
+    print d
+    f = BaseSpatialFilter(ftype=PLAIN)
+    f.W = np.random.randn(32, 4)
+    np.testing.assert_equal(f.get_covs(d), [np.cov(d.xs, rowvar=False)])
+    np.testing.assert_equal(f.sfilter(d).xs, np.dot(d.xs, f.W))
+
+  def test_trial(self):
+    dtrial = self.dtrail
+    f = BaseSpatialFilter(ftype=TRIAL)
+    f.W = np.random.randn(32, 4)
+
+    # test that the covariances are correctly extracted
+    covs = np.asarray([np.cov(t, rowvar=False) for t in dtrial.nd_xs])
+    np.testing.assert_equal(f.get_covs(dtrial), covs)
+
+    # verify that the mapping is applied correctly
+    np.testing.assert_equal(f.sfilter(dtrial).nd_xs, 
+      [np.dot(t, f.W) for t in dtrial.nd_xs])
+
+  def test_cov(self):
+    dtrial = self.dtrail
+    dcov = self.dcov
+
+    f = BaseSpatialFilter(ftype=COV)
+    f.W = np.random.randn(32, 4)
+
+    # test that the covariances are correctly extracted
+    np.testing.assert_equal(f.get_covs(dcov), dcov.nd_xs)
+
+    # verify that the mapping is applied correctly
+    target = np.array([np.cov(np.dot(t, f.W), rowvar=False) for t in 
+      dtrial.nd_xs])
+    np.testing.assert_almost_equal(f.sfilter(dcov).nd_xs, target)
+      
+
+
 class TestSpatialFilters(unittest.TestCase):
   def setUp(self):
     np.random.seed(0)
