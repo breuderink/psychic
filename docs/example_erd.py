@@ -30,7 +30,7 @@ preprocessing = golem.nodes.Chain([
   ])
 
 preprocessing.train(d) # Required to calculate sampling rate
-d = preprocessing.test(d)
+d = preprocessing.apply(d)
 
 NTRAIN = 500
 d, dtest = d[:NTRAIN], d[NTRAIN:]
@@ -58,7 +58,7 @@ cl = golem.nodes.Chain([
 cl.train(d)
 
 # Do predictions, and split in 5 chronologically disjoint sets
-pred = cl.test(dtest)
+pred = cl.apply(dtest)
 pred = golem.cv.seq_splits(pred, 5)
 
 def itr(d):
