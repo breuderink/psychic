@@ -109,7 +109,7 @@ class CSP(BaseSpatialFilter):
 
 
 def car(n):
-  return np.eye(n) - np.ones((n, n)) / float(n)
+  return np.eye(n) - 1. / float(n)
 
 def whitening(sigma, rtol=1e-15):
   # FIXME: low-rank sigma should have a low-rank W
