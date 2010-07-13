@@ -9,7 +9,7 @@ from ..nodes.spatialfilter import *
 class TestBaseSpatialFilter(unittest.TestCase):
   def setUp(self):
     # build dataset with artificial trials
-    dtrial = DataSet(xs=np.random.rand(10, 32 * 128) + 10,
+    dtrial = DataSet(xs=np.random.randn(10, 32 * 128),
       feat_shape=(128, 32), ys=np.zeros((10, 1)))
     
     # derive cov-based dataset
@@ -22,7 +22,7 @@ class TestBaseSpatialFilter(unittest.TestCase):
     dplain = DataSet(xs=xs, ys=np.zeros((xs.shape[0], 1)))
 
     self.dplain = dplain
-    self.dtrail = dtrial
+    self.dtrial = dtrial
     self.dcov = dcov
 
   def test_plain(self):
@@ -35,23 +35,24 @@ class TestBaseSpatialFilter(unittest.TestCase):
     np.testing.assert_equal(f.sfilter(d).xs, np.dot(d.xs, f.W))
 
   def test_trial(self):
-    dtrial = self.dtrail
+    dtrial = self.dtrial
     f = BaseSpatialFilter(ftype=TRIAL)
     f.W = np.random.randn(32, 4)
 
     # test extraction of number of channels
     self.assertEqual(f.get_nchannels(dtrial), 32)
 
-    # test that the covariances are correctly extracted
+    # Test that the covariances are correctly extracted. The devision by n-1
+    # causes some small differences.
     np.testing.assert_almost_equal(f.get_cov(dtrial), 
-      cov0(np.vstack(dtrial.nd_xs)))
+      cov0(np.vstack(dtrial.nd_xs)), decimal=2)
 
     # verify that the mapping is applied correctly
     np.testing.assert_equal(f.sfilter(dtrial).nd_xs, 
       [np.dot(t, f.W) for t in dtrial.nd_xs])
 
   def notest_cov(self):
-    dtrial = self.dtrail
+    dtrial = self.dtrial
     dcov = self.dcov
 
     f = BaseSpatialFilter(ftype=COV)
@@ -76,7 +77,7 @@ class TestSpatialFilters(unittest.TestCase):
   def test_cov0(self):
     xs = np.dot(np.random.rand(100, 4), np.random.rand(4, 4))
     xs = xs - np.mean(xs, axis=0)
-    np.testing.assert_almost_equal(cov0(xs) / (xs.shape[0] - 1), 
+    np.testing.assert_almost_equal(cov0(xs), 
       np.cov(xs, rowvar=False))
 
   def test_select_channels(self):
@@ -87,18 +88,25 @@ class TestSpatialFilters(unittest.TestCase):
 
   def test_deflate(self):
     # make centered xs, with 2 big amplitude channels at the end.
-    xs = np.dot(np.random.randn(1000, 4), np.random.rand(4, 4))
-    xs = np.hstack([xs, np.random.rand(xs.shape[0], 2) * 20])
-    xs = xs - np.mean(xs, axis=0)
+    #xs = np.dot(np.random.randn(1000, 4), np.random.rand(4, 4))
+    xs = np.dot(np.random.randn(1000, 4), np.eye(4))
+    xs = np.hstack([xs, np.random.randn(xs.shape[0], 2) * 20])
 
     # spread some influence of the big amplitude channels.
     A = np.eye(6)
     A[-2:,:-2] = np.random.rand(2, 4)
     xs_mix = np.dot(xs, A)
+    xs_mix = xs_mix - np.mean(xs_mix, axis=0)
 
     # Verify that it undoes the mixing. I suspect that the poor numerical 
     # precision is the result of random correlations in xs.
-    W = deflate(np.cov(xs_mix, rowvar=False), [-2, -1])
+    sig = cov0(xs_mix)
+    sig_S = cov0(xs)
+
+    W = deflate(sig, [4, 5])
+
+    np.testing.assert_almost_equal(reduce(np.dot, [W.T, sig, W]), 
+      cov0(xs[:, :4]), decimal=2)
     np.testing.assert_almost_equal(np.dot(A, W), np.eye(6)[:, :-2], decimal=2)
 
   def test_car(self):

@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from golem import DataSet
-from ..nodes import RegFilter
+from ..nodes import Deflate as RegFilter
 
 import pylab
 

@@ -5,7 +5,8 @@ from golem.nodes import BaseNode
 
 PLAIN, TRIAL = range(2)
 
-# TODO: change to trials of [channels x time] to conform, change spatial filters
+# TODO: change to trials of [channels x time] to conform to standard math
+# notation, change spatial filters
 
 
 def cov0(X):
@@ -14,20 +15,20 @@ def cov0(X):
   normalization. Note that the different observations are stored in the rows,
   and the variables are stored in the columns.
   '''
-  return np.dot(X.T, X)
+  return np.dot(X.T, X) / (X.shape[0] - 1)
 
 def plain_cov0(d):
   return cov0(d.xs)
 
 def trial_cov0(d):
-  return np.sum([cov0(t) for t in d.nd_xs], axis=0)
+  return np.mean([cov0(t) for t in d.nd_xs], axis=0)
 
 class BaseSpatialFilter(BaseNode):
   '''
   Handles the application of a spatial filter matrix W to different types
   of datasets.
   
-  This are getting more complicated. So, this class does NOT:
+  This is getting more complicated. So, this class does NOT:
   - Center the data. You are responsible to center the data, for example by
     high-pass filtering or a FeatMap node.
   
@@ -88,12 +89,14 @@ class CAR(BaseSpatialFilter):
   def train_(self, d):
     self.W = car(self.get_nchannels(d))
 
+
 class Whitening(BaseSpatialFilter):
   def __init__(self, ftype=TRIAL):
     BaseSpatialFilter.__init__(self, ftype)
 
   def train_(self, d):
     self.W = whitening(self.get_cov(d))
+
 
 class CSP(BaseSpatialFilter):
   def __init__(self, m, ftype=TRIAL):
@@ -106,18 +109,33 @@ class CSP(BaseSpatialFilter):
     sigma_b = self.get_cov(d.get_class(1))
     self.W = csp(sigma_a, sigma_b, self.m)
 
+class Deflate(BaseSpatialFilter):
+  def __init__(self, noise_ids, ftype=TRIAL):
+    BaseSpatialFilter.__init__(self, ftype)
+    self.noise_ids = noise_ids
 
+  def train_(self, d):
+    self.W = deflate(self.get_cov(d), self.noise_ids)
+  
 
 def car(n):
+  '''Return a common average reference spatial filter for n channels'''
   return np.eye(n) - 1. / float(n)
 
 def whitening(sigma, rtol=1e-15):
-  # FIXME: low-rank sigma should have a low-rank W
+  '''
+  Return a whitening matrix W for covariance matrix sigma. If sigma is
+  not full rank, a low-rank W is returned.
+  '''
   U, l, _ = la.svd(la.pinv(sigma))
   rank = np.sum(l > np.max(l) * rtol)
   return np.dot(U, np.diag(l) ** .5)[:, :rank]
 
 def sym_whitening(sigma):
+  '''
+  Return a symmetrical whitening transform. The symmetrical whitening
+  transform includes adds a backrotation to the whitening transform.
+  '''
   U, l, _ = la.svd(la.pinv(sigma))
   return reduce(np.dot, [U, np.diag(l) ** .5, U.T])
 
@@ -151,20 +169,25 @@ def select_channels(n, keep_inds):
 
 def deflate(sigma, noise_inds):
   '''
-  Remove cross-correlation between noise channels and the rest. Based on [1].
-  Asumes the following model:
+  Remove cross-correlation between noise channels and the other channels. 
+  Based on [1]. It asumes the following model:
   
-    X = S A
-  
-  and finds a spatial filter W, such that A W = I.
+   X = S + A N
+
+  Where S are the EEG sources, N is the EEG data, and A is a mixing matrix, and
+  X is the recorded data. It finds a spatial filter W, such that W X = S.
+
+  Therefore, W Sigma W^T = Sigma_S
+
+  @@TODO: W X and X W is not consistent yet.
 
   [1] Alois Schloegl, Claudia Keinrath, Doris Zimmermann, Reinhold Scherer,
   Robert Leeb, and Gert Pfurtscheller. A fully automated correction method of
   EOG artifacts in EEG recordings. Clinical Neurophysiology, 118:98--104, 2007.
   '''
   n = sigma.shape[0]
-  mask = np.zeros(n, np.bool)
-  mask[noise_inds] = True
+  mask = np.asarray([i in noise_inds for i in range(n)])
+  assert np.sum(mask) == len(noise_inds)
 
   # Find B, that predicts the EEG from EOG
   Cnn = sigma[mask][:, mask]
