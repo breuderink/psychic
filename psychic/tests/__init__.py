@@ -5,5 +5,4 @@ from testplots import *
 from testfiltering import *
 from testtimefreq import *
 from testmarkers import *
-from testregfilter import *
 from testslidingwindow import *
