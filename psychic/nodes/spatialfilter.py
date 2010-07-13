@@ -1,13 +1,13 @@
+import itertools
 import numpy as np
 from numpy import linalg as la
 from golem import DataSet
 from golem.nodes import BaseNode
 
-PLAIN, TRIAL = range(2)
-
 # TODO: change to trials of [channels x time] to conform to standard math
 # notation, change spatial filters
 
+PLAIN, TRIAL = range(2)
 
 def cov0(X):
   '''
@@ -97,7 +97,6 @@ class Whitening(BaseSpatialFilter):
   def train_(self, d):
     self.W = whitening(self.get_cov(d))
 
-
 class CSP(BaseSpatialFilter):
   def __init__(self, m, ftype=TRIAL):
     BaseSpatialFilter.__init__(self, ftype)
@@ -110,13 +109,19 @@ class CSP(BaseSpatialFilter):
     self.W = csp(sigma_a, sigma_b, self.m)
 
 class Deflate(BaseSpatialFilter):
-  def __init__(self, noise_ids, ftype=TRIAL):
+  def __init__(self, noise_selector, ftype=PLAIN):
     BaseSpatialFilter.__init__(self, ftype)
-    self.noise_ids = noise_ids
+    self.noise_selector = np.asarray(noise_selector, bool)
 
   def train_(self, d):
-    self.W = deflate(self.get_cov(d), self.noise_ids)
-  
+    self.W = deflate(self.get_cov(d), self.noise_selector)
+
+  def apply_(self, d):
+    feat_lab = None
+    if self.ftype == PLAIN and d.feat_lab != None:
+      feat_lab = [d.feat_lab[i] for i in range(d.nfeatures) if not 
+        self.noise_selector[i]]
+    return DataSet(feat_lab=feat_lab, default=BaseSpatialFilter.apply_(self, d))
 
 def car(n):
   '''Return a common average reference spatial filter for n channels'''
@@ -167,15 +172,15 @@ def select_channels(n, keep_inds):
   '''
   return np.eye(n)[:, keep_inds]
 
-def deflate(sigma, noise_inds):
+def deflate(sigma, noise_selector):
   '''
   Remove cross-correlation between noise channels and the other channels. 
   Based on [1]. It asumes the following model:
   
    X = S + A N
 
-  Where S are the EEG sources, N is the EEG data, and A is a mixing matrix, and
-  X is the recorded data. It finds a spatial filter W, such that W X = S.
+  Where S are the EEG sources, N are the EOG sources, and A is a mixing matrix,
+  and X is the recorded data. It finds a spatial filter W, such that W X = S.
 
   Therefore, W Sigma W^T = Sigma_S
 
@@ -186,15 +191,16 @@ def deflate(sigma, noise_inds):
   EOG artifacts in EEG recordings. Clinical Neurophysiology, 118:98--104, 2007.
   '''
   n = sigma.shape[0]
-  mask = np.asarray([i in noise_inds for i in range(n)])
-  assert np.sum(mask) == len(noise_inds)
+  noise_selector = np.asarray(noise_selector, bool)
+  assert n == noise_selector.size, \
+    'length of noise_selector and size of sigma do not match'
 
   # Find B, that predicts the EEG from EOG
-  Cnn = sigma[mask][:, mask]
-  Cny = sigma[mask][:, ~mask]
+  Cnn = sigma[noise_selector][:, noise_selector]
+  Cny = sigma[noise_selector][:, ~noise_selector]
   B = np.dot(la.pinv(Cnn), Cny)
   B = np.hstack([B, np.zeros((B.shape[0], B.shape[0]))])
 
   # Construct final W
-  W = np.eye(n) - np.dot(select_channels(n, noise_inds), B)
-  return W[:, ~mask]
+  W = np.eye(n) - np.dot(select_channels(n, noise_selector), B)
+  return W[:, ~noise_selector]

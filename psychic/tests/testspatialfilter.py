@@ -88,7 +88,6 @@ class TestSpatialFilters(unittest.TestCase):
 
   def test_deflate(self):
     # make centered xs, with 2 big amplitude channels at the end.
-    #xs = np.dot(np.random.randn(1000, 4), np.random.rand(4, 4))
     xs = np.dot(np.random.randn(1000, 4), np.eye(4))
     xs = np.hstack([xs, np.random.randn(xs.shape[0], 2) * 20])
 
@@ -103,7 +102,7 @@ class TestSpatialFilters(unittest.TestCase):
     sig = cov0(xs_mix)
     sig_S = cov0(xs)
 
-    W = deflate(sig, [4, 5])
+    W = deflate(sig, [False, False, False, False, True, True])
 
     np.testing.assert_almost_equal(reduce(np.dot, [W.T, sig, W]), 
       cov0(xs[:, :4]), decimal=2)

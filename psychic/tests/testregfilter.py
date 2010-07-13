@@ -22,7 +22,7 @@ class TestRegFilter(unittest.TestCase):
   def test_removal(self):
     d = DataSet(xs=np.hstack([self.signal, self.eog]), 
       ys=np.zeros((TestRegFilter.NINSTANCES, 1)))
-    n = RegFilter(range(8, 12))
+    n = RegFilter(np.arange(12) >= 8, 0) # 0 == PLAIN
     n.train(d)
     d2 = n.apply(d)
 
@@ -43,8 +43,8 @@ class TestRegFilter(unittest.TestCase):
       ys=np.zeros((TestRegFilter.NINSTANCES, 1)),
       feat_lab=['f%d' % fi for fi in range(12)])
 
-    noise_channels = [i for i in range(d.nfeatures) if not i % 2]
-    n = RegFilter(noise_channels)
+    noise_channels = [not i % 2 for i in range(d.nfeatures)]
+    n = RegFilter(noise_channels, 0)
     n.train(d)
     d2 = n.apply(d)
     self.assertEqual(d2.feat_lab, 
