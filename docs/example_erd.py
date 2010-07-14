@@ -4,71 +4,56 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 
-def var_feat(x):
-  return np.var(x, axis=0)
-
-def log_feat(x):
-  return np.log(x)
+def logvar_feat(x):
+  return np.log(np.var(x, axis=0))
 
 def window(x):
-  '''Multiply a Hanning window with the time series'''
-  return np.hanning(x.shape[0]).reshape(-1, 1) * x
-
-# Setup logging levels
-logging.basicConfig(level=logging.WARNING)
-logging.getLogger('golem.nodes.ModelSelect').setLevel(logging.INFO)
-
-# Load dataset (see also psychic.helpers.bdf_dataset)
-d = golem.DataSet.load('S9.dat')
+  return x * np.hanning(x.shape[0]).reshape(-1, 1)
 
 # Define preprocessing pipeline
 preprocessing = golem.nodes.Chain([
   # Filter to beta range (8--30 Hz)
   psychic.nodes.Filter(lambda s : signal.iirfilter(6, [8./(s/2), 30./(s/2)])),
   # Extract 2 second window centered on key-press
-  psychic.nodes.Slice({1:'left', 2:'right', 3:'left', 4:'right'}, [-1, 1]),
+  psychic.nodes.Slice({1:'left', 2:'right'}, [-.7, .7]),
   ])
 
+
+def acc_crit(d, n):
+  '''
+  Performs 5-fold cross-validation of node n on dataset d, and returns mean
+  accuracy. Used for model selection.
+  '''
+  return golem.loss.mean_std(golem.loss.accuracy,
+    golem.cv.cross_validate(golem.cv.seq_splits(d, 5), n))[0]
+
+pipeline = golem.nodes.Chain([
+  golem.nodes.FeatMap(window),
+  psychic.nodes.CSP(m=6),
+  psychic.nodes.Whitening(),
+  golem.nodes.FeatMap(logvar_feat),
+  golem.nodes.SVM(C=1e5)])
+
+# Setup logging levels
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger('golem.nodes.ModelSelect').setLevel(logging.INFO)
+
+# Load dataset (see also psychic.helpers.bdf_dataset for .bdf files)
+d = golem.DataSet.load('S9.dat')
+
+# Preprocess
 preprocessing.train(d) # Required to calculate sampling rate
 d = preprocessing.apply(d)
 
 NTRAIN = 500
 d, dtest = d[:NTRAIN], d[NTRAIN:]
 
-
-def I_crit(d, n):
-  '''
-  Performs 5-fold cross-validation of node n on dataset d, and returns mean
-  mutual information. Used for model selection.
-  '''
-  return golem.loss.mean_std(golem.loss.I,
-    golem.cv.cross_validate(golem.cv.seq_splits(d, 5), n))[0]
-
-svm = golem.nodes.ModelSelect(
-    [golem.nodes.SVM(C=C) for C in np.logspace(-2, 5, 6)], I_crit)
-
-cl = golem.nodes.Chain([
-  golem.nodes.FeatMap(window),
-  psychic.nodes.CSP(m=6),
-  golem.nodes.FeatMap(var_feat),
-  golem.nodes.FeatMap(log_feat),
-  svm])
-
 # Build classifier
-cl.train(d)
+pipeline.train(d)
 
-# Do predictions, and split in 5 chronologically disjoint sets
-pred = cl.apply(dtest)
-pred = golem.cv.seq_splits(pred, 5)
+# Do predictions
+pred = pipeline.apply(dtest)
 
-def itr(d):
-  rate = d.ninstances / (np.max(d.ids) - np.min(d.ids))
-  return 60. * golem.loss.I(d) * rate
+print 'Acc:', golem.loss.accuracy(pred)
+print 'AUC:', golem.loss.auc(pred)
 
-itrs = np.array([itr(p) for p in pred])
-accs = np.array([golem.loss.accuracy(p) for p in pred])
-aucs = np.array([golem.loss.auc(p) for p in pred])
-
-print 'ITR: %s -> %.2f' % (itrs.round(2), np.mean(itrs))
-print 'Acc: %s -> %.2f' % (accs.round(2), np.mean(accs))
-print 'AUC: %s -> %.2f' % (aucs.round(2), np.mean(aucs))
