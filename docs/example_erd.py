@@ -18,19 +18,9 @@ preprocessing = golem.nodes.Chain([
   psychic.nodes.Slice({1:'left', 2:'right'}, [-.7, .7]),
   ])
 
-
-def acc_crit(d, n):
-  '''
-  Performs 5-fold cross-validation of node n on dataset d, and returns mean
-  accuracy. Used for model selection.
-  '''
-  return golem.loss.mean_std(golem.loss.accuracy,
-    golem.cv.cross_validate(golem.cv.seq_splits(d, 5), n))[0]
-
 pipeline = golem.nodes.Chain([
   golem.nodes.FeatMap(window),
   psychic.nodes.CSP(m=6),
-  psychic.nodes.Whitening(),
   golem.nodes.FeatMap(logvar_feat),
   golem.nodes.SVM(C=1e5)])
 
