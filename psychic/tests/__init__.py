@@ -6,3 +6,4 @@ from testfiltering import *
 from testtimefreq import *
 from testmarkers import *
 from testslidingwindow import *
+from testparafac import *
