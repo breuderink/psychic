@@ -81,21 +81,17 @@ def sfilter_cov(d, W):
   return DataSet(xs=xs, feat_shape=xs.shape[1:], 
     feat_lab=['f%d' % range(xs.shape[1])], default=d)
 
-
 class CAR(BaseSpatialFilter):
-  def __init__(self, ftype=PLAIN):
-    BaseSpatialFilter.__init__(self, ftype)
-
   def train_(self, d):
     self.W = car(self.get_nchannels(d))
 
-
 class Whitening(BaseSpatialFilter):
-  def __init__(self, ftype=TRIAL):
-    BaseSpatialFilter.__init__(self, ftype)
-
   def train_(self, d):
     self.W = whitening(self.get_cov(d))
+
+class SymWhitening(BaseSpatialFilter):
+  def train_(self, d):
+    self.W = sym_whitening(self.get_cov(d))
 
 class CSP(BaseSpatialFilter):
   def __init__(self, m, ftype=TRIAL):
