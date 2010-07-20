@@ -82,14 +82,23 @@ def sfilter_cov(d, W):
     feat_lab=['f%d' % range(xs.shape[1])], default=d)
 
 class CAR(BaseSpatialFilter):
+  def __init__(self, ftype=TRIAL):
+    BaseSpatialFilter.__init__(self, ftype)
+
   def train_(self, d):
     self.W = car(self.get_nchannels(d))
 
 class Whitening(BaseSpatialFilter):
+  def __init__(self, ftype=TRIAL):
+    BaseSpatialFilter.__init__(self, ftype)
+
   def train_(self, d):
     self.W = whitening(self.get_cov(d))
 
 class SymWhitening(BaseSpatialFilter):
+  def __init__(self, ftype=TRIAL):
+    BaseSpatialFilter.__init__(self, ftype)
+
   def train_(self, d):
     self.W = sym_whitening(self.get_cov(d))
 
