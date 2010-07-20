@@ -40,7 +40,7 @@ class TestParafac(unittest.TestCase):
     np.testing.assert_almost_equal(T1, T2)
 
   def test_parafac_roundtrip(self):
-    # create 3-factor tensors with know noise
+    # create 3-factor tensor with known noise
     T0 = np.random.rand(4, 7, 10)
     l0 = parafac(T0, 2)
     T1 = para_compose(ribs(l0)) + .05 * np.random.randn(*T0.shape)

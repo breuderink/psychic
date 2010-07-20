@@ -25,10 +25,12 @@ def parafac(x, nfactors=3, max_iter=5000):
   '''
   PARAFAC is a multi-way tensor decomposition method. Given a tensor X, and a
   number of factors nfactors, PARAFAC decomposes the X in n factors for each 
-  dimension in X using alternating least squares.
+  dimension in X using alternating least squares:
+
+  X_{ijk} = \sum_{f} a_{fi} b_{fj} c_{fk} + e_{ijk}
 
   PARAFAC can be seen as a generalization of PCA to higher order arrays [1].
-  Return a list with a [nfactors x mi] arrays, one for each mode.
+  Return a list with [a, b, c, ...].
 
   [1] Rasmus Bro. PARAFAC. Tutorial and applications. Chemometrics and
   Intelligent Laboratory Systems, 38(2):149-171, 1997.
@@ -55,7 +57,6 @@ def parafac(x, nfactors=3, max_iter=5000):
       Z = reduce(operator.mul, Z)
 
       # b) Isolate mode
-      #Z = Z.reshape(-1, nfactors) # Z = [long x fact]
       Z = Z.reshape(nfactors, -1).T # Z = [long x fact]
       Y = np.rollaxis(x, mode)
       Y = Y.reshape(Y.shape[0], -1).T # Y = [mode x long]
