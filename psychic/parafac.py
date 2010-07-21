@@ -68,7 +68,6 @@ def parafac_base(x, nfactors, max_iter):
 
     # 2) stopping?
     mse = np.mean((xhat - x) ** 2)
-    log.info('MSE:%.2g' % mse)
     if last_mse - mse < 1e-10 or mse < 1e-20:
       break
     last_mse = mse
