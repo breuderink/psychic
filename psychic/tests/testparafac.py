@@ -42,14 +42,24 @@ class TestParafac(unittest.TestCase):
   def test_parafac_roundtrip(self):
     # create 3-factor tensor with known noise
     T0 = np.random.rand(4, 7, 10)
-    l0 = parafac(T0, 2)
+    l0, _ = parafac_base(T0, 2, 5000)
     T1 = para_compose(ribs(l0)) + .05 * np.random.randn(*T0.shape)
 
     # see that parafac converges to the same solution
     n1 = normalized_loadings(l0)
-    n2 = normalized_loadings(parafac(T1, 2))
+    n2 = normalized_loadings(parafac_base(T1, 2, 5000)[0])
     np.testing.assert_almost_equal(n1[0], n2[0], decimal=1)
     for mi in range(3):
       mi1 = n1[1][mi]
       mi2 = n2[1][mi]
       np.testing.assert_almost_equal(mi1, mi2, decimal=1)
+
+  def test_parafac(self):
+    T = np.random.rand(4, 4, 10)
+    s, l, mse = parafac(T, nfactors=2)
+    self.assertEqual(s.size, 2)
+
+    # sanity checks:
+    self.assert_(np.all(np.diff(s) < 0)) # sanity check
+    np.testing.assert_almost_equal(normalized_loadings(l)[0], [1, 1])
+    self.assert_(mse < np.var(T))

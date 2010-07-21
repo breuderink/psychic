@@ -23,6 +23,29 @@ def para_compose(ribs):
 
 def parafac(x, nfactors=3, max_iter=5000):
   '''
+  PARAFAC is a multi-way tensor decomposition method [1]. Given a tensor X, and
+  a number of factors nfactors, PARAFAC decomposes the X in n factors for each
+  dimension in X using alternating least squares:
+
+  X_{ijk} = \sum_{f} s_{f} a_{fi} b_{fj} c_{fk} + e_{ijk}
+
+  Note that in contrast to parafac_base(), this function rescales the loadings
+  to unit vectors, and stores the scale in the vector s.
+
+  Returns (s, [a, b, c, ..], mse).
+
+  Please note parafac does not center. If required, please center the data
+  over the relevant mode beforehand.
+
+  [1] Rasmus Bro. PARAFAC. Tutorial and applications. Chemometrics and
+  Intelligent Laboratory Systems, 38(2):149-171, 1997.
+  '''
+  loadings, mse = parafac_base(x, nfactors, max_iter)
+  s, nl = normalized_loadings(loadings)
+  return (s, nl, mse)
+
+def parafac_base(x, nfactors, max_iter):
+  '''
   PARAFAC is a multi-way tensor decomposition method. Given a tensor X, and a
   number of factors nfactors, PARAFAC decomposes the X in n factors for each 
   dimension in X using alternating least squares:
@@ -30,7 +53,7 @@ def parafac(x, nfactors=3, max_iter=5000):
   X_{ijk} = \sum_{f} a_{fi} b_{fj} c_{fk} + e_{ijk}
 
   PARAFAC can be seen as a generalization of PCA to higher order arrays [1].
-  Return a list with [a, b, c, ...].
+  Return a ([a, b, c, ...], mse)
 
   [1] Rasmus Bro. PARAFAC. Tutorial and applications. Chemometrics and
   Intelligent Laboratory Systems, 38(2):149-171, 1997.
@@ -64,7 +87,10 @@ def parafac(x, nfactors=3, max_iter=5000):
       # c) least squares estimation: x = np.lstsq(Z, Y) -> Z x = Y
       new_fact, _, _, _ = np.linalg.lstsq(Z, Y)
       loadings[mode] = new_fact
-  return loadings
+  if not i < max_iter - 1:
+    log.warning('parafac did not converge in %d iterations (mse=%.2g)' %
+      (max_iter, mse))
+  return loadings, mse
 
 def normalized_loadings(loadings):
   '''
