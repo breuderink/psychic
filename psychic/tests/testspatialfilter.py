@@ -51,7 +51,7 @@ class TestBaseSpatialFilter(unittest.TestCase):
     np.testing.assert_equal(f.sfilter(dtrial).nd_xs, 
       [np.dot(t, f.W) for t in dtrial.nd_xs])
 
-  def notest_cov(self):
+  def test_cov(self):
     dtrial = self.dtrial
     dcov = self.dcov
 
@@ -62,7 +62,7 @@ class TestBaseSpatialFilter(unittest.TestCase):
     self.assertEqual(f.get_nchannels(dcov), 32)
 
     # test that the covariances are correctly extracted
-    np.testing.assert_equal(f.get_covs(dcov), dcov.nd_xs)
+    np.testing.assert_equal(f.get_cov(dcov), np.mean(dcov.nd_xs, axis=0))
 
     # verify that the mapping is applied correctly
     target = np.array([np.cov(np.dot(t, f.W), rowvar=False) for t in 

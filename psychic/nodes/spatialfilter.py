@@ -7,7 +7,7 @@ from golem.nodes import BaseNode
 # TODO: change to trials of [channels x time] to conform to standard math
 # notation, change spatial filters
 
-PLAIN, TRIAL = range(2)
+PLAIN, TRIAL, COV = range(3)
 
 def cov0(X):
   '''
@@ -22,6 +22,9 @@ def plain_cov0(d):
 
 def trial_cov0(d):
   return np.mean([cov0(t) for t in d.nd_xs], axis=0)
+
+def cov_cov0(d):
+  return np.mean(d.nd_xs, axis=0)
 
 class BaseSpatialFilter(BaseNode):
   '''
@@ -47,19 +50,24 @@ class BaseSpatialFilter(BaseNode):
       return d.nfeatures
     if self.ftype == TRIAL:
       return d.feat_shape[1]
+    if self.ftype == COV:
+      return d.feat_shape[0]
 
   def get_cov(self, d):
     if self.ftype == PLAIN:
       return plain_cov0(d)
     if self.ftype == TRIAL:
       return trial_cov0(d)
+    if self.ftype == COV:
+      return cov_cov0(d)
 
   def sfilter(self, d):
     if self.ftype == PLAIN:
       return sfilter_plain(d, self.W)
-    elif self.ftype == TRIAL:
+    if self.ftype == TRIAL:
       return sfilter_trial(d, self.W)
-    feat_shape = xs.shape[1:]
+    if self.ftype == COV:
+      return sfilter_cov(d, self.W)
 
   def apply_(self, d):
     return self.sfilter(d)
@@ -78,8 +86,8 @@ def sfilter_trial(d, W):
 def sfilter_cov(d, W):
   '''Apply spatial filter to dataset containing covariance estimates.'''
   xs = np.array([reduce(np.dot, [W.T, t, W]) for t in d.nd_xs])
-  return DataSet(xs=xs, feat_shape=xs.shape[1:], 
-    feat_lab=['f%d' % range(xs.shape[1])], default=d)
+  return DataSet(xs=xs.reshape(xs.shape[0], -1), feat_shape=xs.shape[1:], 
+    feat_lab=None, default=d)
 
 class CAR(BaseSpatialFilter):
   def __init__(self, ftype=TRIAL):
