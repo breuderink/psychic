@@ -54,8 +54,8 @@ def gen_10_10():
     ]
   lr_pos = [str(i) for i in [9, 7, 5, 3, 1, 'z', 2, 4, 6, 8, 10]]
   fb_slab = ['AF', 'F', 'FC', 'C', 'CP', 'P', 'PO']
-  for theta_per, slab in zip(range(20, 81, 10), fb_slab):
-    for phi_per, pos in zip(range(0, 101, 10), lr_pos):
+  for theta_per, slab in zip(np.linspace(20, 80, 7), fb_slab):
+    for phi_per, pos in zip(np.linspace(0, 100, 11), lr_pos):
       label = slab + pos
       label = SUBST.get(label, label)
       result.append((label, theta_per, phi_per))
