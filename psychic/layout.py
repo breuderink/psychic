@@ -41,21 +41,17 @@ def gen_10_10():
     'FC9':'FT9', 'FC7':'FT7', 'FC8':'FT8', 'FC10':'FT10'}
   BLACKLIST = ['AF9', 'AF10']
   result = [
-    ('Nz', 0, 50), 
-    ('Fp1', 10, 10), 
-    ('Fpz', 10, 50),
-    ('Fp2', 10, 90),
-    ('O1', 90, 10),
-    ('Oz', 90, 50),
-    ('O2', 90, 90),
-    ('I1', 90, 0),
-    ('Iz', 100, 50),
-    ('I2', 90, 100),
+    ('Fp1', 10, 0), 
+    ('Fpz', 0, 50),
+    ('Fp2', 10, 100),
+    ('O1', 90, 0),
+    ('Oz', 100, 50),
+    ('O2', 90, 100),
     ]
-  lr_pos = [str(i) for i in [9, 7, 5, 3, 1, 'z', 2, 4, 6, 8, 10]]
+  lr_pos = [str(i) for i in [7, 5, 3, 1, 'z', 2, 4, 6, 8]]
   fb_slab = ['AF', 'F', 'FC', 'C', 'CP', 'P', 'PO']
   for theta_per, slab in zip(np.linspace(20, 80, 7), fb_slab):
-    for phi_per, pos in zip(np.linspace(0, 100, 11), lr_pos):
+    for phi_per, pos in zip(np.linspace(0, 100, 9), lr_pos):
       label = slab + pos
       label = SUBST.get(label, label)
       result.append((label, theta_per, phi_per))
