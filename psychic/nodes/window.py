@@ -14,9 +14,8 @@ class SlidingWindow(BaseNode):
     wsize, wstep, refi = self.win_size, self.win_step, self.ref_frame
 
     xs, ys, ids = [], [], []
-    tail = d
-    while tail.ninstances >= wsize:
-      win, tail = tail[:wsize], tail[wstep:]
+    for i in range(0, d.ninstances - wsize + 1, wstep):
+      win = d[i:i+wsize]
       xs.append(win.nd_xs)
       ys.append(win.ys[refi])
       ids.append(win.ids[refi])
