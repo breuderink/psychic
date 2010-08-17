@@ -1,4 +1,4 @@
-import logging, operator
+import logging, operator, warnings
 import numpy as np
 from bdfreader import BDFReader
 from golem import DataSet, helpers
@@ -57,6 +57,11 @@ def spectrogram(signal, nfft, stepsize):
   return spec
 
 def bdf_dataset(fname):
+  warnings.warn('bdf_dataset() is deprecated. Use load_bdf() instead.',
+    DeprecationWarning)
+  return load_bdf(fname)
+
+def load_bdf(fname):
   STATUS = 'Status'
   f = open(fname, 'rb')
   try:

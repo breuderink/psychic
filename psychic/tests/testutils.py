@@ -144,7 +144,7 @@ class TestSpectrogram(unittest.TestCase):
 
 class TestBDF(unittest.TestCase):
   def test_load(self):
-    d = utils.bdf_dataset(os.path.join('data', 'sine-256Hz.bdf'))
+    d = utils.load_bdf(os.path.join('data', 'sine-256Hz.bdf'))
 
     # test labels
     targets = ['A%d' % (i + 1) for i in range(16)]
