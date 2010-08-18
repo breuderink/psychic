@@ -145,17 +145,20 @@ def whitening(sigma, rtol=1e-15):
   Return a whitening matrix W for covariance matrix sigma. If sigma is
   not full rank, a low-rank W is returned.
   '''
-  U, l, _ = la.svd(la.pinv(sigma))
+  U, l, _ = la.svd(sigma)
   rank = np.sum(l > np.max(l) * rtol)
-  return np.dot(U, np.diag(l) ** .5)[:, :rank]
+  return np.dot(U[:, :rank], np.diag(l[:rank] ** -.5))
 
-def sym_whitening(sigma):
+def sym_whitening(sigma, rtol=1e-15):
   '''
   Return a symmetrical whitening transform. The symmetrical whitening
   transform includes adds a backrotation to the whitening transform.
   '''
-  U, l, _ = la.svd(la.pinv(sigma))
-  return reduce(np.dot, [U, np.diag(l) ** .5, U.T])
+  U, l, _ = la.svd(sigma)
+  rank = np.sum(l > np.max(l) * rtol)
+  U = U[:, :rank]
+  l = l[:rank]
+  return reduce(np.dot, [U, np.diag(l ** -.5), U.T])
 
 def outer_n(n):
   '''Return a list with indices from both ends, i.e.: [0, 1, 2, -3, -2, -1]'''
