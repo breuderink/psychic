@@ -75,10 +75,9 @@ class TestSpatialFilters(unittest.TestCase):
     np.random.seed(0)
 
   def test_cov0(self):
-    xs = np.dot(np.random.rand(100, 4), np.random.rand(4, 4))
+    xs = np.dot(np.random.rand(1000, 4), np.random.rand(4, 4))
     xs = xs - np.mean(xs, axis=0)
-    np.testing.assert_almost_equal(cov0(xs), 
-      np.cov(xs, rowvar=False))
+    np.testing.assert_almost_equal(cov0(xs), np.cov(xs, rowvar=False, bias=1))
 
   def test_select_channels(self):
     xs = np.random.rand(40, 10)

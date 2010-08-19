@@ -11,11 +11,12 @@ PLAIN, TRIAL, COV = range(3)
 
 def cov0(X):
   '''
-  Calculate X^T X, a covariance estimate for zero-mean data without 
-  normalization. Note that the different observations are stored in the rows,
+  Calculate X^T X, a covariance estimate for zero-mean data, 
+  normalized by the number of samples (1/N).
+  Note that the different observations are stored in the rows,
   and the variables are stored in the columns.
   '''
-  return np.dot(X.T, X) / (X.shape[0] - 1)
+  return np.dot(X.T, X) / (X.shape[0])
 
 def plain_cov0(d):
   return cov0(d.xs)
