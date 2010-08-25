@@ -153,7 +153,7 @@ def whitening(sigma, rtol=1e-15):
 def sym_whitening(sigma, rtol=1e-15):
   '''
   Return a symmetrical whitening transform. The symmetrical whitening
-  transform includes adds a backrotation to the whitening transform.
+  transform adds a backrotation to the whitening transform.
   '''
   U, l, _ = la.svd(sigma)
   rank = np.sum(l > np.max(l) * rtol)
