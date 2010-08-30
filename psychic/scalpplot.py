@@ -5,32 +5,16 @@ from scipy import interpolate
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch, Circle
 
-BIOSEMI_32_LOCS = {
-  'AF3': (-0.409, 0.87, 0.280), 'AF4': (0.409, 0.87, 0.280),
-  'C3': (-0.719, 0.0, 0.689), 'C4': (0.719, 0.0, 0.689),
-  'CP1': (-0.37, -0.37, 0.849), 'CP2': (0.37, -0.37, 0.849),
-  'CP5': (-0.890, -0.340, 0.31), 'CP6': (0.890, -0.340, 0.31),
-  'Cz': (-0, 0.0, 1.0), 'F3': (-0.550, 0.670, 0.5),
-  'F4': (0.550, 0.670, 0.5), 'F7': (-0.810, 0.589, -0.0299),
-  'F8': (0.810, 0.589, -0.0299), 'FC1': (-0.37, 0.37, 0.849),
-  'FC2': (0.37, 0.37, 0.849), 'FC5': (-0.890, 0.340, 0.31),
-  'FC6': (0.890, 0.340, 0.31), 'Fp1': (-0.31, 0.949, -0.0299),
-  'Fp2': (0.31, 0.949, -0.0299), 'Fz': (-0, 0.719, 0.689),
-  'O1': (-0.31, -0.949, -0.029), 'O2': (0.31, -0.949, -0.029),
-  'Oz': (0.0, -1.0, -0.029), 'P3': (-0.550, -0.670, 0.5),
-  'P4': (0.550, -0.670, 0.5), 'P7': (-0.810, -0.589, -0.029),
-  'P8': (0.810, -0.589, -0.029), 'PO3': (-0.409, -0.87, 0.280),
-  'PO4': (0.409, -0.87, 0.280), 'Pz': (0.0, -0.719, 0.689),
-  'T7': (-1.0, 0.0, -0.029), 'T8': (1.0, 0.0, -0.0299)}
+import positions
 
-def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True, 
-  cmap=plt.cm.jet, clim=None):
+def plot_scalp(densities, sensors, sensor_locs=positions.POS_10_5, 
+  plot_sensors=True, cmap=plt.cm.jet, clim=None):
 
   # add densities
-  curr_sens = dict([(lab, sensor_locs[lab]) for lab in sensors]) 
   if clim == None:
     clim = [np.min(densities), np.max(densities)]
-  add_density(densities, sensors, curr_sens, cmap=cmap, clim=clim)
+  locs = [positions.project_scalp(*sensor_locs[lab]) for lab in sensors]
+  add_density(densities, locs, cmap=cmap, clim=clim)
 
   # setup plot
   MARGIN = 1.2
@@ -45,11 +29,11 @@ def plot_scalp(densities, sensors, sensor_locs, plot_sensors=True,
   # add details
   add_head()
   if plot_sensors:
-    add_sensors(curr_sens)
+    add_sensors(locs)
  
 def add_head():
   '''Draw head outline'''
-  LINEWIDTH = 1
+  LINEWIDTH = 2
   nose = [(Path.MOVETO, (-.1, 1.)), (Path.LINETO, (0, 1.1)),
     (Path.LINETO, (.1, 1.))]
 
@@ -69,17 +53,15 @@ def add_head():
     ax.add_patch(PathPatch(Path(verts, code), fill=False, linewidth=LINEWIDTH))
 
 
-def add_sensors(sensor_dict):
+def add_sensors(labels, locs):
   '''Adds sensor names and markers'''
-  locs = []
-  for (label, coord) in sensor_dict.items():
-    (x, y, z) = coord
-    plt.text(x, y + .03, label, fontsize=8, ha='center')
-    locs.append((x, y))
-  locs = np.asarray(locs)
-  plt.plot(locs[:, 0], locs[:, 1], 'ko')
+  for (label, (x, y, z)) in zip(labels, locs):
+    x, y = positions.project_scalp(x, y, z)
+    if len(sensor_dict) < 32:
+      plt.text(x, y + .03, label, fontsize=8, ha='center')
+    plt.plot(x, y, 'k.')
 
-def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
+def add_density(dens, locs, cmap=plt.cm.jet, clim=None):
   '''
   This function draws the densities using the locations provided in
   sensor_dict. The two are connected throught the list labels.  The densities
@@ -89,16 +71,17 @@ def add_density(dens, labels, sensor_dict, cmap=plt.cm.jet, clim=None):
   '''
   RESOLUTION = 50
   RADIUS = 1.2
-  locs = [sensor_dict[l] for l in labels]
-  xs, ys, zs = zip(*locs)
+  xs, ys = zip(*locs)
   extent = [-1.2, 1.2, -1.2, 1.2]
   vmin, vmax = clim
 
   # interpolate
+  # TODO: replace with Gaussian process interpolator. I don't trust SciPy's 
+  # interpolation functions too much.
+  rbf = interpolate.Rbf(xs, ys, dens, function='linear')
   xg = np.linspace(extent[0], extent[1], RESOLUTION)
   yg = np.linspace(extent[2], extent[3], RESOLUTION)
   xg, yg = np.meshgrid(xg, yg)
-  rbf = interpolate.Rbf(xs, ys, dens, function='linear', smooth=.0)
   zg = rbf(xg, yg)
 
   # draw contour

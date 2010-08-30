@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import scalpplot
-from scalpplot import plot_scalp, BIOSEMI_32_LOCS
+from scalpplot import plot_scalp
+from positions import POS_10_5
 from scipy import signal
 
 def plot_timeseries(frames, time=None, offset=None, color='k', linestyle='-'):
@@ -14,7 +15,7 @@ def plot_timeseries(frames, time=None, offset=None, color='k', linestyle='-'):
     np.arange(frames.shape[1]) * offset, color=color, ls=linestyle)
 
 
-def plot_scalpgrid(scalps, sensors, locs=BIOSEMI_32_LOCS, width=None, 
+def plot_scalpgrid(scalps, sensors, locs=POS_10_5, width=None, 
   clim=None, cmap=None, titles=None):
   '''
   Plots a grid with scalpplots. Scalps contains the different scalps in the

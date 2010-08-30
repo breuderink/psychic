@@ -1,12 +1,12 @@
-# TODO:
-# [ ] add description (old one is invalidated)
-# [ ] add extra sensors to 10-10 standard (F9, Ns etc)
-# [ ] integrate with scalp-plot functions
-# [ ] add (small) sensor dots by default in scalp plot, names optional.
-import numpy as np
-from pprint import pprint
+def project_scalp(x, y, z, v=2.):
+  '''
+  Project the sensor locations towards a point *below* the cap with distance v
+  on the xy plane.
+  '''
+  # v/(v+z) = x'/x => x' = xv/(v+z)
+  return (x*v/(v+z), y*v/(v+z))
 
-OOSTENVELD_10_5 = {
+POS_10_5 = {
   'LPA':(-0.9237,0.0000,-0.3826),	
   'RPA':(0.9237,0.0000,-0.3826),
   'Nz':(-0.0000,0.9230,-0.3824),
@@ -351,46 +351,3 @@ OOSTENVELD_10_5 = {
   'T6':(0.8090,-0.5878,-0.0001)}
 
 
-def project_scalp(xyz, v=2.):
-  '''
-  Project the sensor locations towards a point *below* the cap with distance v
-  on the xy plane.
-  '''
-  # v/(v+z) = x'/x => x' = xv/(v+z)
-  x, y, z = xyz
-  return (x*v/(v+z), y*v/(v+z))
-
-import unittest, matplotlib.pyplot as plt
-
-class Test10_10(unittest.TestCase):
-  def test_dists(self):
-    def dist(a, b):
-      return np.linalg.norm((np.atleast_1d(a) - np.atleast_1d(b)))
-
-    def test_eq_dists(labs):
-      dists = [dist(LAYOUT[a], LAYOUT[b]) for a, b in zip(labs, labs[1:])]
-      self.assert_(np.all(np.abs(np.diff(dists)) < 1e-3))
-
-    test_eq_dists('Nz Fpz AFz Fz FCz Cz CPz Pz POz Oz Iz'.split())
-    test_eq_dists('Fpz Fp1 AF7 F7 FT7 T7 TP7 P7 PO7 O1 Oz'.split())
-    test_eq_dists('Fpz Fp2 AF8 F8 FT8 T8 TP8 P8 PO8 O2 Oz'.split())
-    test_eq_dists('T9 T7 C5 C3 C1 Cz C2 C4 C6 T8 T10'.split())
-
-  def test_plot_locs(self):
-    locs = []
-    for (label, coord) in LAYOUT.items():
-      x, y = project_scalp(coord)
-      plt.text(x, y + .03, label, fontsize=8, ha='center')
-      locs.append((x, y))
-    locs = np.asarray(locs)
-
-    plt.plot(locs[:, 0], locs[:, 1], 'ko')
-    plt.xlim(-1.5, 1.5)
-    plt.ylim(-1.5, 1.5)
-    plt.show()
-    
-LAYOUT = OOSTENVELD_10_5
-
-
-if __name__ == '__main__':
-  unittest.main()
