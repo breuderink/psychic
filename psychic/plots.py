@@ -45,8 +45,7 @@ def plot_scalpgrid(scalps, sensors, locs=POS_10_5, width=None,
   plt.clf()
   for i in range(nscalps):
     subplots.append(plt.subplot(height, width, i + 1))
-    plot_scalp(scalps[i], sensors, locs, clim=clim, cmap=cmap,
-      plot_sensors=False)
+    plot_scalp(scalps[i], sensors, locs, clim=clim, cmap=cmap)
     if titles:
       plt.title(titles[i])
 

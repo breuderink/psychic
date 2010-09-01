@@ -29,7 +29,7 @@ def plot_scalp(densities, sensors, sensor_locs=positions.POS_10_5,
   # add details
   add_head()
   if plot_sensors:
-    add_sensors(locs)
+    add_sensors(sensors, locs)
  
 def add_head():
   '''Draw head outline'''
@@ -55,11 +55,10 @@ def add_head():
 
 def add_sensors(labels, locs):
   '''Adds sensor names and markers'''
-  for (label, (x, y, z)) in zip(labels, locs):
-    x, y = positions.project_scalp(x, y, z)
-    if len(sensor_dict) < 32:
+  for (label, (x, y)) in zip(labels, locs):
+    if len(labels) < 32:
       plt.text(x, y + .03, label, fontsize=8, ha='center')
-    plt.plot(x, y, 'k.')
+    plt.plot(x, y, 'k.', ms=2.)
 
 def add_density(dens, locs, cmap=plt.cm.jet, clim=None):
   '''
@@ -77,7 +76,7 @@ def add_density(dens, locs, cmap=plt.cm.jet, clim=None):
 
   # interpolate
   # TODO: replace with Gaussian process interpolator. I don't trust SciPy's 
-  # interpolation functions too much.
+  # interpolation functions (they wiggle and they segfault).
   rbf = interpolate.Rbf(xs, ys, dens, function='linear')
   xg = np.linspace(extent[0], extent[1], RESOLUTION)
   yg = np.linspace(extent[2], extent[3], RESOLUTION)

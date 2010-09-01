@@ -20,7 +20,8 @@ class TestPlots(unittest.TestCase):
 
   def test_scalpplot(self):
     plt.clf()
-    sensors = POS_10_5.keys()
+    sensors = ('Fp1 Fp2 AF3 AF4 F7 F3 Fz F4 F8 FC5 FC1 FC2 FC6 T7 C3 Cz C4 T8' +
+      ' CP5 CP1 CP2 CP6 P7 P3 Pz P4 P8 PO3 PO4 O1 Oz O2').split()
     activity = np.random.randn(len(sensors)) * 1e-3
     activity[sensors.index('Fp1')] = 1.
     activity[sensors.index('C3')] = -1.
