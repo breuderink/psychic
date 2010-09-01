@@ -5,7 +5,7 @@ from scipy import signal
 from golem import DataSet
 from ..plots import plot_timeseries
 from .. import filtering
-from ..nodes import OnlineFilter
+from ..nodes import OnlineFilter, Winsorize
 
 class TestResample(unittest.TestCase):
   def setUp(self):
@@ -14,7 +14,7 @@ class TestResample(unittest.TestCase):
     ys[::4] = 2
     self.d = DataSet(xs=xs, ys=ys)
 
-  def test_resample(self):
+  def test_resample(self): 
     d = self.d
     d2 = filtering.resample_rec(d, .5)
     self.assertEqual(d2.ninstances, d.ninstances / 2)
@@ -132,3 +132,22 @@ class TestOnlineFilter(unittest.TestCase):
 
     b, a = of.filter
     np.testing.assert_equal(filt_d.xs,  signal.lfilter(b, a, stream.xs, axis=0))
+
+class TestWinsorizing(unittest.TestCase):
+  def setUp(self):
+    xs = np.random.rand(100, 5) + np.arange(5)
+    xs[10, :] = 10;
+    xs[11, :] = -10
+    self.d = DataSet(xs=xs, ys=np.ones((100, 1)))
+
+  def test_nop(self):
+    d = self.d
+    nop = Winsorize([0, 1]).train_apply(d, d)
+    self.assertEqual(nop, d)
+
+  def test_minimal(self):
+    d = self.d
+    wd = Winsorize([.01, .99]).train_apply(d, d)
+    self.assert_(np.all((wd.xs == d.xs)[:10]))
+    self.assert_(np.all((wd.xs != d.xs)[10:12]))
+    self.assert_(np.all((wd.xs == d.xs)[12:]))

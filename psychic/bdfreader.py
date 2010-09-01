@@ -4,6 +4,7 @@ import numpy as np
 bdf_log = logging.getLogger('BDFReader')
 
 class BDFEndOfData: pass
+
 class BDFReader:
   '''Simple wrapper to hide the records and read specific number of frames'''
   def __init__(self, file):

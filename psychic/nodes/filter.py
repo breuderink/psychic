@@ -44,3 +44,18 @@ class OnlineFilter(Filter):
     self.zi = new_zi
 
     return DataSet(xs=np.hstack(xs), default=d)
+
+class Winsorize(BaseNode):
+  def __init__(self, cutoff=[.05, .95]):
+    self.cutoff = np.atleast_1d(cutoff)
+    assert self.cutoff.size == 2
+    BaseNode.__init__(self)
+
+  def train_(self, d):
+    assert len(d.feat_shape) == 1
+    self.lims = np.apply_along_axis(lambda x: np.interp(self.cutoff, 
+      np.linspace(0, 1, d.ninstances), np.sort(x)), 0, d.xs)
+    
+  def apply_(self, d):
+    return DataSet(xs=np.clip(d.xs, self.lims[0,:], self.lims[1:]),
+      default=d)

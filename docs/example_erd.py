@@ -12,6 +12,8 @@ def window(x):
 
 # Define preprocessing pipeline
 preprocessing = golem.nodes.Chain([
+  # Clip extreme values
+  psychic.nodes.Winsorize(),
   # Filter to beta range (8--30 Hz)
   psychic.nodes.Filter(lambda s : signal.iirfilter(6, [8./(s/2), 30./(s/2)])),
   # Extract 2 second window centered on key-press
@@ -30,6 +32,7 @@ logging.getLogger('golem.nodes.ModelSelect').setLevel(logging.INFO)
 
 # Load dataset (see also psychic.helpers.bdf_dataset for .bdf files)
 d = golem.DataSet.load('S9.dat')
+d0 = d
 
 # Preprocess
 preprocessing.train(d) # Required to calculate sampling rate
@@ -44,6 +47,6 @@ pipeline.train(d)
 # Do predictions
 pred = pipeline.apply(dtest)
 
-print 'Acc:', golem.loss.accuracy(pred)
-print 'AUC:', golem.loss.auc(pred)
+print 'Acc:', golem.perf.accuracy(pred)
+print 'AUC:', golem.perf.auc(pred)
 
