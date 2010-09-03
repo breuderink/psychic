@@ -146,6 +146,7 @@ def whitening(sigma, rtol=1e-15):
   Return a whitening matrix W for covariance matrix sigma. If sigma is
   not full rank, a low-rank W is returned.
   '''
+  assert np.all(np.isfinite(sigma))
   U, l, _ = la.svd(sigma)
   rank = np.sum(l > np.max(l) * rtol)
   return np.dot(U[:, :rank], np.diag(l[:rank] ** -.5))
@@ -155,6 +156,7 @@ def sym_whitening(sigma, rtol=1e-15):
   Return a symmetrical whitening transform. The symmetrical whitening
   transform adds a backrotation to the whitening transform.
   '''
+  assert np.all(np.isfinite(sigma))
   U, l, _ = la.svd(sigma)
   rank = np.sum(l > np.max(l) * rtol)
   U = U[:, :rank]
