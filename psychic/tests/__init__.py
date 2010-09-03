@@ -8,3 +8,4 @@ from testmarkers import *
 from testslidingwindow import *
 from testparafac import *
 from testpositions import *
+from testnonstat import *
