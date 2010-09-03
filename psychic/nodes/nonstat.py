@@ -23,7 +23,7 @@ class SlowSphering(BaseNode):
     self.fil = signal.iirfilter(4, self.cutoff, btype='low')
 
   def apply_(self, d):
-    xs = slow_sphere(d.xs, self.fil, self.reest * self.samplerate)
+    xs = slow_sphere(d.xs, self.fil, int(self.reest * self.samplerate))
     return DataSet(xs=xs, default=d)
 
 def slow_sphere(samples, (b, a), wstep):
