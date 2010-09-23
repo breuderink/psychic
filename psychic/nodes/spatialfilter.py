@@ -16,7 +16,7 @@ def cov0(X):
   Note that the different observations are stored in the rows,
   and the variables are stored in the columns.
   '''
-  return np.dot(X.T, X) / (X.shape[0] - 1)
+  return np.dot(X.T, X) / X.shape[0]
 
 def plain_cov0(d):
   return cov0(d.xs)
