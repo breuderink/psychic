@@ -3,6 +3,34 @@ from scipy import signal
 from golem import DataSet
 from markers import resample_markers
 
+def ewma_filter(alpha):
+  '''
+  Filter coefficients for a recursive exponentially weighed moving average
+  '''
+  alpha = float(alpha)
+  assert 0 <= alpha <= 1
+  b, a = [1 - alpha], [1, -alpha]
+  return b, a
+
+def ewma(x, alpha, v0=0):
+  '''
+  Causal exponential moving average implemeted using scipy.signal.lfilter.
+  With alpha as the forgetting factor close to one, x the signal to filter.
+  Optionally, an initial estimate can be provided with the float v0.
+  '''
+  b, a = ewma_filter(alpha)
+  x = np.atleast_1d(x).flatten()
+  v0 = float(v0)
+
+  zi = signal.lfiltic(b, a, [v0])
+  return signal.lfilter(b, a, x, zi=zi)[0]
+
+def ma(x, n):
+  '''Causal moving average filter, with signal x, and window-length n.'''
+  n = int(n)
+  return np.convolve(x, np.ones(n)/n)[:x.size]
+
+
 def filtfilt_rec(d, (b, a)):
   '''
   Apply a filter defined by the filter coefficients (b, a) to a 
