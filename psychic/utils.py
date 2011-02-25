@@ -118,7 +118,8 @@ def slice(d, markers_to_class, offsets):
 
   m = len(xs)
   xs = np.asarray(xs).reshape(m, np.prod(feat_shape))
-  ys = helpers.to_one_of_n(ys, class_cols=range(len(cl_lab)))
+  ys = np.asarray(ys)
+  ys = helpers.to_one_of_n(ys.T, class_rows=range(len(cl_lab))).T
   ids = np.asarray(ids).reshape(m, d.ids.shape[1])
 
   event_time = np.arange(start_off, end_off) / float(get_samplerate(d))

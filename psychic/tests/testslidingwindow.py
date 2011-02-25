@@ -9,7 +9,7 @@ class TestWindowNode(unittest.TestCase):
   def setUp(self):
     xs = np.arange(300).reshape(-1, 3)
     ys = np.linspace(0, 3, 100, endpoint=False).astype(int)
-    self.d = golem.DataSet(xs=xs, ys=golem.helpers.to_one_of_n(ys))
+    self.d = golem.DataSet(xs=xs, ys=golem.helpers.to_one_of_n(ys.T).T)
 
   def test_sw(self):
     d = self.d
