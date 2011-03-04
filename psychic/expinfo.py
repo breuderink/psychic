@@ -3,8 +3,7 @@ from golem import DataSet
 from golem.nodes import BaseNode
 import numpy as np
 
-TRIALINFO = ['marker_to_class', 'trial_offset', 'baseline_offset', 
-  'test_folds']
+TRIALINFO = ['marker_to_class', 'trial_offset', 'baseline_offset', 'test_folds']
 CHANNINFO = ['ref_chan', 'meg_chan', 'eeg_chan', 'eog_chan', 'emg_chan']
 RECINFO = ['notch', 'amplifier', 'lab', 'subject', 'note']
 TASKINFO = ['paradigm', 'sug_bands', 'sug_time_offsets', 'sug_chan']
