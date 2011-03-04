@@ -1,3 +1,4 @@
+import operator
 from golem import DataSet
 from golem.nodes import BaseNode
 import numpy as np
@@ -64,15 +65,16 @@ def check_expinfo(expinfo):
 
   return expinfo
 
-def add_expinfo(d, exp_dict):
+def add_expinfo(exp_dict, d):
   # Testing the test_folds is difficult; markers might be present in short runs
   # and slicing might ignore trials on the boundary.
 
   # Verify that channels are a subset of feat_lab.
-  for changroup in CHANNINFO + ['sug_chan']:
-    ch = exp_dict.get(changroup)
-    if ch != None:
-      assert set(ch).issubset(d.feat_lab)
+  channels = [exp_dict.get(chgroup, []) for chgroup in CHANNINFO]
+  channels.extend(exp_dict.get('sug_chan', []))
+  channels = reduce(operator.add, channels)
+  for ch in channels:
+    assert ch in d.feat_lab, ('%s not found in feat_lab' % ch)
 
   extra = {'exp_info' : exp_dict}
   extra.update(d.extra)

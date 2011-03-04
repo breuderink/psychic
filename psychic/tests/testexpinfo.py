@@ -52,12 +52,12 @@ class TestAddExpinfo(unittest.TestCase):
   def test_add_expinfo(self):
     exp_info = check_expinfo(
       dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[],
-      eeg_chan=['chann0', 'chann1']))
-    d2 = add_expinfo(self.d, exp_info)
+      eeg_chan=['chann0', 'chann1'], sug_chan=[['chann2']]))
+    d2 = add_expinfo(exp_info, self.d)
     assert d2.extra['exp_info'] == exp_info
 
   def test_wrong_channels(self):
     exp_info = check_expinfo(
       dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[],
       eeg_chan=['A0', 'A1']))
-    self.assertRaises(AssertionError, add_expinfo, self.d, exp_info)
+    self.assertRaises(AssertionError, add_expinfo, exp_info, self.d)
