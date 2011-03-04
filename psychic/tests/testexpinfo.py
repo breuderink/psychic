@@ -44,12 +44,20 @@ class TestExpinfo(unittest.TestCase):
     check_expinfo(
       dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[]))
 
-  def test_add_expinfo(self):
-    d = DataSet(X=np.random.rand(5, 20), Y=np.ones((1, 20)),
+class TestAddExpinfo(unittest.TestCase):
+  def setUp(self):
+    self.d = DataSet(X=np.random.rand(5, 20), Y=np.ones((1, 20)),
       feat_lab=['chann%d' % i for i in range(5)])
-    print d, d.feat_lab
 
+  def test_add_expinfo(self):
     exp_info = check_expinfo(
-      dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[]))
-    d2 = add_expinfo(d, exp_info)
+      dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[],
+      eeg_chan=['chann0', 'chann1']))
+    d2 = add_expinfo(self.d, exp_info)
     assert d2.extra['exp_info'] == exp_info
+
+  def test_wrong_channels(self):
+    exp_info = check_expinfo(
+      dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[],
+      eeg_chan=['A0', 'A1']))
+    self.assertRaises(AssertionError, add_expinfo, self.d, exp_info)
