@@ -74,7 +74,7 @@ class BaseSpatialFilter(BaseNode):
     return self.sfilter(d)
 
 def sfilter_plain(d, W):
-  '''Apply spatial filter to plain dataset (as in, before slicing).'''
+  '''Apply spatial filter to plain dataset (as in, before trial extraction).'''
   xs = np.dot(d.xs, W)
   return DataSet(xs=xs, feat_shape=(xs.shape[1],), feat_lab=None, default=d)
 
@@ -97,12 +97,17 @@ class CAR(BaseSpatialFilter):
   def train_(self, d):
     self.W = car(self.get_nchannels(d))
 
-class Whitening(BaseSpatialFilter):
+class Whiten(BaseSpatialFilter):
   def __init__(self, ftype=TRIAL):
     BaseSpatialFilter.__init__(self, ftype)
 
   def train_(self, d):
     self.W = whitening(self.get_cov(d))
+
+class Whitening(Whiten):
+  def __init__(self, ftype=TRIAL):
+    raise DeprecationWarning('Please use Whiten instead')
+    Whiten.__init__(self, ftype=TRIAL)
 
 class SymWhitening(BaseSpatialFilter):
   def __init__(self, ftype=TRIAL):
@@ -154,7 +159,7 @@ def whitening(sigma, rtol=1e-15):
 def sym_whitening(sigma, rtol=1e-15):
   '''
   Return a symmetrical whitening transform. The symmetrical whitening
-  transform adds a backrotation to the whitening transform.
+  transform adds a back rotation to the whitening transform.
   '''
   assert np.all(np.isfinite(sigma))
   U, l, _ = la.svd(sigma)
