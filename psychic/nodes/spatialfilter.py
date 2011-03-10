@@ -175,8 +175,8 @@ def outer_n(n):
 def csp_base(sigma_a, sigma_b):
   '''Return CSP transformation matrix. No dimension reduction is performed.'''
   P = whitening(sigma_a + sigma_b)
-  P_sigma_a = reduce(np.dot, [P.T, sigma_a, P])
-  B, l, _ = la.svd(la.pinv(P_sigma_a))
+  P_sigma_b = reduce(np.dot, [P.T, sigma_b, P])
+  B, l, _ = la.svd((P_sigma_b))
   return np.dot(P, B)
 
 def csp(sigma_a, sigma_b, m):
