@@ -1,7 +1,8 @@
 import unittest
 import os.path
 import numpy as np
-from psychic.bdfreader import BDFReader, le_to_int24, int24_to_le
+from psychic.bdfreader import BDFReader, le_to_int24, int24_to_le, load_bdf
+from ..markers import markers_to_events, biosemi_find_ghost_markers
 
 class TestConversion(unittest.TestCase):
   def setUp(self):
@@ -39,3 +40,21 @@ class TestBDFReader(unittest.TestCase):
     freqs = np.fft.fftfreq(eeg.shape[0], 1./256)
     peak_freq = freqs[eeg_fft[1:,:].argmax(axis=0)]
     np.testing.assert_almost_equal(peak_freq, np.ones(16) * 2.61, 2)
+
+class TestBDF(unittest.TestCase):
+  def test_load(self):
+    d = load_bdf(os.path.join('data', 'sine-256Hz.bdf'))
+
+    # test labels
+    targets = ['A%d' % (i + 1) for i in range(16)]
+    self.assertEqual(d.feat_lab, targets)
+    self.assertEqual(d.cl_lab, ['status'])
+
+    # test ids ~ time
+    self.assertAlmostEqual(d.ids[256 + 1], 1, 2)
+
+    # test dims
+    self.assertEqual(d.nfeatures, 16)
+    self.assertEqual(d.ninstances, 60 * 256)
+    
+    self.assertEqual(d.extra, {})

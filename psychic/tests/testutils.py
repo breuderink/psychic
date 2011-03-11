@@ -2,7 +2,6 @@ import unittest, os.path, logging
 import numpy as np
 from golem import DataSet, helpers
 from .. import utils
-from .. import markers
 
 import matplotlib.pyplot as plt
 
@@ -141,24 +140,6 @@ class TestSpectrogram(unittest.TestCase):
     beta_i = np.argmin(np.abs(freqs - 30))
     self.assertEqual(np.argmax(np.mean(spec, axis=0)), beta_i)
       
-
-class TestBDF(unittest.TestCase):
-  def test_load(self):
-    d = utils.load_bdf(os.path.join('data', 'sine-256Hz.bdf'))
-
-    # test labels
-    targets = ['A%d' % (i + 1) for i in range(16)]
-    self.assertEqual(d.feat_lab, targets)
-    self.assertEqual(d.cl_lab, ['status'])
-
-    # test ids ~ time
-    self.assertAlmostEqual(d.ids[256 + 1], 1, 2)
-
-    # test dims
-    self.assertEqual(d.nfeatures, 16)
-    self.assertEqual(d.ninstances, 60 * 256)
-    
-    self.assertEqual(d.extra, {})
 
 
 class TestSlice(unittest.TestCase):

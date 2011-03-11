@@ -1,5 +1,7 @@
 import re, datetime, unittest, logging
 import numpy as np
+from golem import DataSet
+from markers import biosemi_find_ghost_markers
 
 bdf_log = logging.getLogger('BDFReader')
 
@@ -145,3 +147,32 @@ def int24_to_le(ints):
   bytes[:, 1] = (uints >> 8) & 0xff
   bytes[:, 2] = (uints >> 16) & 0xff
   return bytes.flatten()
+
+def bdf_dataset(fname):
+  warnings.warn('bdf_dataset() is deprecated. Use load_bdf() instead.',
+    DeprecationWarning)
+  return load_bdf(fname)
+
+def load_bdf(fname):
+  STATUS = 'Status'
+  f = open(fname, 'rb')
+  try:
+    b = BDFReader(f)
+    frames = b.read_all()
+  finally:
+    f.close()
+
+  data_mask = [i for i, lab in enumerate(b.labels) if lab != STATUS]
+  status_mask = b.labels.index(STATUS)
+  feat_lab = [b.labels[i] for i in data_mask]
+  sample_rate = b.sample_rate[0]
+  ids = (np.arange(frames.shape[0]) / float(sample_rate)).reshape(-1, 1)
+  d = DataSet(
+    xs=frames[:,data_mask], 
+    ys=frames[:,status_mask].reshape(-1, 1).astype(int) & 0xffff, 
+    ids=ids, feat_lab=feat_lab, cl_lab=['status'])
+  ghosts = biosemi_find_ghost_markers(d.ys.flatten())
+  if len(ghosts) > 0:
+    logging.getLogger('psychic.bdf_dataset').warning(
+      'Found ghost markers: %s' % str(zip(d.ys.flatten()[ghosts], ghosts)))
+  return d
