@@ -13,7 +13,7 @@ def markers_to_events(marker_array):
 
 def biosemi_find_ghost_markers(ys):
   '''
-  Biosemi seems to decimate the status channel by taking the max of each
+  BioSemi seems to decimate the status channel by taking the max of each
   window. When two makers fall in the same frame after decimation, a ghost
   marker appears, with the value of the bitwise or of the other markers.
   This function finds ghost markers using a heuristic. 

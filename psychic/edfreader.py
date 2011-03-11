@@ -1,5 +1,6 @@
-import re, datetime
+import re, datetime, operator, logging
 import numpy as np
+from golem import DataSet
 
 class EDFEndOfData: pass
 
@@ -130,4 +131,54 @@ class BaseEDFReader:
     except EDFEndOfData:
       pass
 
+def load_edf(fname, annotation_to_marker):
+  '''
+  Very basic reader for EDF and EDF+ files. While BaseEDFReader does support
+  exotic features like non-homogeneous sample rates and loading only parts of
+  the stream, load_edf expects a single fixed sample rate for all channels and
+  tries to load the whole file.
 
+  annotation_to_marker is a dictionary containing events to keep. This is a
+  bit of an hack, but we need to cast the free-form annotations of EDF+ into
+  a structured event channel.
+  '''
+  log = logging.getLogger('psychic.utils.load_edf')
+  assert 0 not in annotation_to_marker.values()
+  with open(fname, 'rb') as f:
+    reader = BaseEDFReader(f)
+    reader.read_header()
+
+    h = reader.header
+    # get sample rate info
+    nsamp = np.unique(
+      [n for (l, n) in zip(h['label'], h['n_samples_per_record'])
+      if l != EVENT_CHANNEL])
+    assert nsamp.size == 1, 'Multiple sample rates not yet supported'
+    log.info('Detected sample rate %.2f' % nsamp)
+    reclen = reader.header['record_length']
+
+    # read and sort records just to be sure
+    recs = sorted(reader.records()) 
+
+    # create timestamps
+    time = [zip(*recs)[0]][0]
+    rec_time = np.linspace(0, reclen, nsamp, endpoint=False)
+    I = np.hstack([t + rec_time for t in time])
+
+    # create signal matrix X
+    X = np.hstack(zip(*recs)[1])
+    print X
+
+    # create label matrix Y
+    annotations = reduce(operator.add, zip(*recs)[2])
+    events = [(o, annotation_to_marker.get(a, 0)) 
+      for (o, d, aa) in annotations for a in aa]
+    offsets, mi = zip(*events)
+    Y = np.zeros(X.shape[1])
+    yi = np.searchsorted(I, offsets)
+    Y[yi] = mi
+
+    # construct DataSet
+    feat_lab = [lab for lab in reader.header['label'] if lab != EVENT_CHANNEL]
+    return DataSet(X=X, Y=Y, I=I, feat_lab=feat_lab,
+      extra={'edf+_annotations' : annotations})

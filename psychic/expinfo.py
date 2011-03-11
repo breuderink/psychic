@@ -12,6 +12,7 @@ def check_markers(markers):
   assert isinstance(markers, dict)
   assert all([isinstance(m, int) for m in markers.keys()])
   assert all([isinstance(cl, str) for cl in markers.values()])
+  assert all([m > 0 for  m  in markers.keys()])
   assert len(markers) > 0
 
 def check_expinfo(expinfo):
@@ -118,6 +119,3 @@ class SugIntervals(BaseNode):
 
 def auto_folds(d):
   pass
-
-
-

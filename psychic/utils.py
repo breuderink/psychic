@@ -81,13 +81,13 @@ def load_bdf(fname):
     ids=ids, feat_lab=feat_lab, cl_lab=['status'])
   ghosts = biosemi_find_ghost_markers(d.ys.flatten())
   if len(ghosts) > 0:
-    logging.getLogger('Psychic.bdf_dataset').warning(
+    logging.getLogger('psychic.bdf_dataset').warning(
       'Found ghost markers: %s' % str(zip(d.ys.flatten()[ghosts], ghosts)))
   return d
 
 def get_samplerate(d):
-  '''Derive the sample rate from the timestamps d.ids[:, 0]'''
-  return int(1./np.median(np.diff(d.ids[:, 0])))
+  '''Derive the sample rate from the timestamps d.I[0]'''
+  return int(np.round(1./np.median(np.diff(d.I[0]))))
 
 def slice(d, markers_to_class, offsets):
   '''
@@ -162,7 +162,6 @@ def cut_segments(d, marker_tuples, offsets=[0, 0]):
     segments.extend(find_segments(e, ei, sm, em))
   segments.sort()
   return [d[s + start_off:e + end_off] for (s, e) in segments]
-
 
 def wolpaw_bitr(N, P):
   assert 0 <= P <= 1
