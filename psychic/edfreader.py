@@ -1,3 +1,7 @@
+# TODO:
+# - add support for log-transformed channels:
+#   http://www.edfplus.info/specs/edffloat.html
+
 import re, datetime, operator, logging
 import numpy as np
 from golem import DataSet
