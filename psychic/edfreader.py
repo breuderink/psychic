@@ -167,16 +167,16 @@ def load_edf(fname, annotation_to_marker):
 
     # create signal matrix X
     X = np.hstack(zip(*recs)[1])
-    print X
 
     # create label matrix Y
     annotations = reduce(operator.add, zip(*recs)[2])
     events = [(o, annotation_to_marker.get(a, 0)) 
       for (o, d, aa) in annotations for a in aa]
-    offsets, mi = zip(*events)
     Y = np.zeros(X.shape[1])
-    yi = np.searchsorted(I, offsets)
-    Y[yi] = mi
+    if events:
+      offsets, mi = zip(*events)
+      yi = np.searchsorted(I, offsets)
+      Y[yi] = mi
 
     # construct DataSet
     feat_lab = [lab for lab in reader.header['label'] if lab != EVENT_CHANNEL]
