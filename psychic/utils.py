@@ -100,7 +100,7 @@ def slice(d, markers_to_class, offsets):
   feat_dim_lab = ['time', 'channels']
   d = DataSet(xs=xs, ys=ys, ids=ids, cl_lab=cl_lab, 
     feat_shape=feat_shape, feat_nd_lab=feat_nd_lab, 
-    feat_dim_lab=feat_dim_lab)
+    feat_dim_lab=feat_dim_lab, default=d)
   return d.sorted()
 
 def find_segments(events, event_indices, start_mark, end_mark):
