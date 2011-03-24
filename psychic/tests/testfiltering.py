@@ -158,7 +158,7 @@ def ewma_ref(x, alpha, v0=0):
   result[0] = v0
 
   for i in range(1, x.size + 1):
-    result[i] = alpha * result[i-1] + (1.-alpha) * x[i-1]
+    result[i] = (1.- alpha) * result[i-1] + alpha * x[i-1]
   return result[1:]
 
 class TestMAs(unittest.TestCase):
@@ -174,11 +174,11 @@ class TestMAs(unittest.TestCase):
 
   def test_emwa(self):
     s = self.s
-    for alpha in [.93, .95, .97, .999]:
+    for alpha in [.001, .01, .05, .1]:
       np.testing.assert_almost_equal(
         filtering.ewma(s, alpha), ewma_ref(s, alpha))
 
-    for alpha in [.93, .95, .97, .999]:
+    for alpha in [.001, .01, .05, .1]:
       for v0 in [0, .01, 4]:
         np.testing.assert_almost_equal(
           filtering.ewma(s, alpha, v0), ewma_ref(s, alpha, v0))

@@ -5,16 +5,16 @@ from markers import resample_markers
 
 def ewma_filter(alpha):
   '''
-  Filter coefficients for a recursive exponentially weighed moving average
+  Filter coefficients for a recursive exponentially weighted moving average
   '''
   alpha = float(alpha)
   assert 0 <= alpha <= 1
-  b, a = [1 - alpha], [1, -alpha]
+  b, a = [alpha], [1, -(1.-alpha)]
   return b, a
 
 def ewma(x, alpha, v0=0):
   '''
-  Causal exponential moving average implemeted using scipy.signal.lfilter.
+  Causal exponential moving average implemented using scipy.signal.lfilter.
   With alpha as the forgetting factor close to one, x the signal to filter.
   Optionally, an initial estimate can be provided with the float v0.
   '''
