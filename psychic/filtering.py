@@ -14,7 +14,7 @@ def ewma_filter(alpha):
 
 def ewma(x, alpha, v0=0):
   '''
-  Causal exponential moving average implemeted using scipy.signal.lfilter.
+  Causal exponential moving average implemented using scipy.signal.lfilter.
   With alpha as the forgetting factor close to one, x the signal to filter.
   Optionally, an initial estimate can be provided with the float v0.
   '''
