@@ -5,11 +5,11 @@ from markers import resample_markers
 
 def ewma_filter(alpha):
   '''
-  Filter coefficients for a recursive exponentially weighed moving average
+  Filter coefficients for a recursive exponentially weighted moving average
   '''
   alpha = float(alpha)
   assert 0 <= alpha <= 1
-  b, a = [1 - alpha], [1, -alpha]
+  b, a = [alpha], [1, -(1.-alpha)]
   return b, a
 
 def ewma(x, alpha, v0=0):
