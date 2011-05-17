@@ -1,63 +1,48 @@
 import unittest
 from ..expinfo import *
 
-class TestExpinfo(unittest.TestCase):
+class TestHelpers(unittest.TestCase):
+  def test_interval(self):
+    self.assertEqual(interval([1, 2]), [1., 2.])
+    self.assertRaises(AssertionError, interval, [0, 0])
+    self.assertRaises(AssertionError, interval, [0, -1])
+
   def test_check_markers(self):
-    check_markers({1:'left', 2:'right', 3:'right'}) # no error
-    self.assertRaises(AssertionError, check_markers, {'left':1})
-    self.assertRaises(AssertionError, check_markers, [1, 2])
+    self.assertEqual(
+      markers({1:'left', 2:'right', 3:'right'}),
+      {1:'left', 2:'right', 3:'right'})
+    self.assertRaises(ValueError, markers, {'marker':1})
+    self.assertRaises(TypeError, markers, [1, 2])
 
+class TestExpInfo(unittest.TestCase):
   def setUp(self):
-    self.exp_dic = dict(marker_to_class = {1:'left'},
-      trial_offset=[0, 1],
-      baseline_offset = [-.5, 0],
-      test_folds = [-1, -1, -1, 1, 1, 4, 4],
-      ref_chan = ['R1'],
-      meg_chan = ['MEG1'],
-      eeg_chan = ['Fp1', 'FP2'],
-      eog_chan = ['EOG1', 'EOG2'],
-      emg_chan = ['Ex1', 'Ex2'],
-      notch = [50],
-      amplifier = 'fakeamp',
-      lab = 'unittest',
-      subject = 'S0',
-      note = 'running unit test',
-      paradigm = 'P300',
-      sug_bands = [[1, 12], [.2, 12]],
-      sug_time_offsets = [[-.2, 8]],
-      sug_chan = ['Fz Cz Pz Oz'.split()])
+    self.ex_mi = Experiment(marker_to_class={1:'left', 2:'right'},
+      trial_offset=[.5, 3], baseline_offset=[-1, 0], band=[8, 30],
+      channels=['C3', 'C4'], paradigm='MI', test_folds=range(10))
+    
+    self.expinfo = ExperimentInfo(
+      ac_freq=50, 
+      amplifier='BioSemi ActiveTwo', 
+      lab='UT/HMI', 
+      subject='Fake',
+      note='recording note', 
+      eeg_chan='C3 Cz C4'.split(),
+      eog_chan='L R T B'.split(),
+      emg_chan='Ex1 Ex2'.split(),
+      ref_chan='Ma1 Ma2'.split(),
+      experiments={'LR' : self.ex_mi})
 
-  def test_complete(self):
-    r = check_expinfo(self.exp_dic)
 
-  def test_wrong_key(self):
-    self.assertRaises(AssertionError,
-      check_expinfo, dict(marker_to_class={1:'left'}, channels=['Fp1', 'Fp2']))
-
-  def test_missing_essentails(self):
-    self.assertRaises(Exception, check_expinfo, 
-      dict(trial_offset=[0, 1], notch=[]))
-    self.assertRaises(Exception, check_expinfo, 
-      dict(marker_to_class={1:'left'}, notch=[]))
-    self.assertRaises(Exception, check_expinfo, 
-      dict(marker_to_class={1:'left'}, trial_offset=[0, 1]))
-    check_expinfo(
-      dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[]))
-
-class TestAddExpinfo(unittest.TestCase):
-  def setUp(self):
-    self.d = DataSet(X=np.random.rand(5, 20), Y=np.ones((1, 20)),
-      feat_lab=['chann%d' % i for i in range(5)])
+  def test_experiment_info(self):
+    self.assertEqual(set(self.expinfo.all_channels),
+      set('C3 Cz C4 L R T B Ex1 Ex2 Ma1 Ma2'.split()))
 
   def test_add_expinfo(self):
-    exp_info = check_expinfo(
-      dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[],
-      eeg_chan=['chann0', 'chann1'], sug_chan=[['chann2']]))
-    d2 = add_expinfo(exp_info, self.d)
-    assert d2.extra['exp_info'] == exp_info
+    d_bad = DataSet(X=np.random.rand(5, 20), Y=np.ones((1, 20)),
+      feat_lab=['chann%d' % i for i in range(5)])
+    
+    d_good = DataSet(X=np.random.rand(11, 20), Y=np.ones((1, 20)),
+      feat_lab=self.expinfo.all_channels)
 
-  def test_wrong_channels(self):
-    exp_info = check_expinfo(
-      dict(marker_to_class={1:'left'}, trial_offset=[0, 1], notch=[],
-      eeg_chan=['A0', 'A1']))
-    self.assertRaises(AssertionError, add_expinfo, exp_info, self.d)
+    d = add_expinfo(self.expinfo, d_good)
+    self.assertRaises(ValueError, add_expinfo, self.expinfo, d_bad)

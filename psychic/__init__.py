@@ -11,5 +11,5 @@ from markers import markers_to_events, biosemi_find_ghost_markers, \
 from plots import plot_timeseries, plot_scalpgrid
 from filtering import filtfilt_rec, resample_rec, decimate_rec, ewma, ma
 from parafac import parafac
-from expinfo import check_expinfo, add_expinfo
+from expinfo import Experiment, ExperimentInfo, add_expinfo
 import nodes

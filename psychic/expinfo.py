@@ -3,119 +3,75 @@ from golem import DataSet
 from golem.nodes import BaseNode
 import numpy as np
 
-TRIALINFO = ['marker_to_class', 'trial_offset', 'baseline_offset', 'test_folds']
-CHANNINFO = ['ref_chan', 'meg_chan', 'eeg_chan', 'eog_chan', 'emg_chan']
-RECINFO = ['notch', 'amplifier', 'lab', 'subject', 'note']
-TASKINFO = ['paradigm', 'sug_bands', 'sug_time_offsets', 'sug_chan']
+class ExperimentInfo:
+  def __init__(self, ac_freq=None, amplifier=None, lab=None, subject=None,
+    note='', eeg_chan=[], eog_chan=[], emg_chan=[], ref_chan=[], 
+    experiments={}):
+      self.ac_freq=float(ac_freq)
+      self.amplifier = str(amplifier)
+      self.lab = str(lab)
+      self.subject = str(subject)
+      self.note = str(note)
+      self.eeg_chan = [str(ch) for ch in eeg_chan]
+      self.eog_chan = [str(ch) for ch in eog_chan]
+      self.emg_chan = [str(ch) for ch in emg_chan]
+      self.ref_chan = [str(ch) for ch in ref_chan]
 
-def check_markers(markers):
-  assert isinstance(markers, dict)
-  assert all([isinstance(m, int) for m in markers.keys()])
-  assert all([isinstance(cl, str) for cl in markers.values()])
-  assert all([m > 0 for  m  in markers.keys()])
+      for (expname, exp) in experiments.items():
+        if not set(exp.channels).issubset(self.all_channels):
+          raise ValueError('%s is not in record info.' %
+            list(set(exp.channels).difference(self.all_channels)))
+      self.experiments = experiments
+
+  @property
+  def all_channels(self):
+    return self.eeg_chan + self.eog_chan + self.emg_chan + self.ref_chan
+
+def markers(markers):
+  markers = dict(markers)
   assert len(markers) > 0
+  keys = [int(k) for k in markers.keys()]
+  values = [str(v) for v in markers.values()]
+  assert all([m > 0 for m in keys])
+  return dict(zip(keys, values))
 
-def check_expinfo(expinfo):
-  valid_keys = TRIALINFO + CHANNINFO + RECINFO + TASKINFO
-  for key in expinfo.keys():
-    assert key in valid_keys, ('%s is not a valid keyword' % key)
-  
-  # check markers
-  check_markers(expinfo['marker_to_class'])
+def interval(interval):
+  assert len(interval) == 2
+  assert interval[1] > interval[0]
+  return [float(o) for o in interval]
 
-  # check trial offset
-  to = expinfo['trial_offset']
-  assert len(to) == 2
-  assert np.diff(to) > 0
+class Experiment:
+  def __init__(self, marker_to_class=None, trial_offset=None, 
+    baseline_offset=None, test_folds=[], paradigm=None,
+    band=None, channels=[]):
+    
+    self.marker_to_class = markers(marker_to_class)
+    self.trial_offset = interval(trial_offset)
+    self.baseline_offset = interval(baseline_offset) # baseline is required?
+    self.test_folds = [int(tf) for tf in test_folds]
+    self.paradigm = str(paradigm)
+    self.band = interval(band)
+    self.channels = [str(ch) for ch in channels]
 
-  # check baseline offset
-  bo = expinfo.get('baseline_offset')
-  if bo != None:
-    assert len(to) == 2
-    assert np.diff(to) > 0
-  
-  # test_folds
-  tf = expinfo.get('test_folds')
-  if tf != None:
-    assert all([isinstance(fold, int) for fold in tf])
+def add_expinfo(exp_info, d):
+  '''
+  Add experiment info to a DataSet d, and perform some sanity checks, i.e.
+  checking of matching channel names.
+  '''
+  if not set(exp_info.all_channels).issubset(d.feat_lab):
+    raise ValueError('%s is not in record info.' %
+      list(set(exp_info.all_channels).difference(d.feat_lab)))
 
-  # verify that channels are strings
-  for changroup in CHANNINFO + ['sug_chann']:
-    chans = expinfo.get(changroup)
-    if chans:
-      assert all([isinstance(ch, str) for ch in chans])
- 
-  # verify format of notch
-  assert 'notch' in expinfo
-  notch = expinfo['notch']
-  if notch:
-    assert all([isinstance(freq, int) for freq in notch])
-
-  # verify string fields
-  for field in ['amp', 'lab', 'subject', 'note', 'paradigm']:
-    assert isinstance(expinfo.get(field, ''), str)
-
-  # verify sug_bands and sug_time_intervals
-  for sug in ['sug_bands', 'sug_time_offsets']:
-    sug_int = expinfo.get(sug)
-    if sug_int != None:
-      sug_int = np.asarray(sug_int)
-      assert sug_int.ndim == 2
-      assert np.all(np.diff(sug_int, axis=1) > 0)
-
-  return expinfo
-
-def add_expinfo(exp_dict, d):
-  # Testing the test_folds is difficult; markers might be present in short runs
-  # and slicing might ignore trials on the boundary.
-
-  # Verify that channels are a subset of feat_lab.
-  channels = [exp_dict.get(chgroup, []) for chgroup in CHANNINFO]
-  channels.extend(exp_dict.get('sug_chan', []))
-  channels = reduce(operator.add, channels)
-  for ch in channels:
-    assert ch in d.feat_lab, ('%s not found in feat_lab' % ch)
-
-  extra = {'exp_info' : exp_dict}
+  extra = {'exp_info' : exp_info}
   extra.update(d.extra)
   return DataSet(extra=extra, default=d)
 
-class AutoReref(BaseNode): 
-  pass
-
-class AutoNotch(BaseNode): 
-  pass
-
-class SugBandPass(BaseNode): 
-  pass
-
-class RemoveEOG(BaseNode): 
-  pass
-
 class OnlyEEG(BaseNode):
   def train_(self, d):
-    assert len(d.feat_shape), 'Please use before extracting trials'
+    assert len(d.feat_shape) == 1, 'Please use before extracting trials'
     eeg_chan = d.extra['exp_info']['eeg_chan']
     self.keep_ii = [i for (i, ch) in enumerate(eeg_chan) if ch in eeg_chan]
 
   def apply_(self, d):
     return DataSet(X=X[self.keep_ii], 
       fealab=[d.fealab[i] for i in self.keep_ii], default=d)
-
-class AutoExTrials(BaseNode): 
-  pass
-
-class AutoBaseline(BaseNode): 
-  pass
-
-class EMGEnvelope(BaseNode): 
-  pass
-
-class SugChannels(BaseNode): 
-  pass
-
-class SugIntervals(BaseNode): 
-  pass
-
-def auto_folds(d):
-  pass
