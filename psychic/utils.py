@@ -1,6 +1,5 @@
 import logging, operator, warnings
 import numpy as np
-from bdfreader import BDFReader
 from golem import DataSet, helpers
 from scipy import signal
 
