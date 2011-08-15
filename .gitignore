@@ -1,7 +1,5 @@
-syntax: glob
 *.*.swp
 *.pyc
 *.png
 *.eps
-env
 MANIFEST
